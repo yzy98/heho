@@ -345,7 +345,10 @@ The target setup should eventually be:
 git clone https://github.com/your-org/heho
 cd heho
 cp .env.example .env
-docker compose up
+colima start
+pnpm infra:up
+pnpm infra:check
+pnpm dev
 ```
 
 Then open:
@@ -364,6 +367,60 @@ postgres + pgvector
 redis
 minio
 ```
+
+## Local Development Flow
+
+Heho uses Colima and Docker Compose for local infrastructure, while app code
+runs through pnpm and Turborepo on the host machine.
+
+```txt
+Colima / Docker Compose
+  -> PostgreSQL + pgvector
+  -> Redis
+
+pnpm / Turborepo
+  -> dashboard
+  -> api
+  -> worker
+  -> packages
+```
+
+Start a development session:
+
+```bash
+colima start
+pnpm infra:up
+pnpm infra:check
+pnpm dev
+```
+
+Useful infrastructure commands:
+
+```bash
+pnpm infra:ps          # Show running containers
+pnpm infra:logs        # Follow infrastructure logs
+pnpm infra:postgres    # Open psql for the local Heho database
+pnpm infra:redis       # Open redis-cli
+pnpm infra:down        # Stop containers but keep local data
+```
+
+End a development session:
+
+```bash
+pnpm infra:down
+colima stop
+```
+
+Reset local infrastructure data only when you intentionally want to delete the
+local PostgreSQL and Redis volumes:
+
+```bash
+pnpm infra:reset:danger
+```
+
+Colima is the recommended local runtime for macOS development, but it is not a
+hard project dependency. Developers using Docker Desktop can still use the same
+`pnpm infra:*` scripts.
 
 ## Business Model
 
@@ -456,20 +513,17 @@ should end with a working checkpoint that can be run locally.
 
 ### Day 1: Project Skeleton
 
-- [ ] Scaffold monorepo basic skeleton.
-- [ ] Configure typescript, turbo, biome and zed setting.
-- [ ] Add root scripts and verify.
+- [x] Scaffold monorepo basic skeleton.
+- [x] Configure typescript, turbo, biome and zed setting.
+- [x] Add root scripts and verify.
 
 ### Day 2: Local Runtime
 
-- [ ] Add Docker Compose for local self-hosting:
-  - [ ] PostgreSQL with pgvector
-  - [ ] Redis
-  - [ ] API server
-  - [ ] Worker
-  - [ ] Dashboard
-- [ ] Set up `.env` and `.env.example` with required local variables.
-- [ ] Confirm the local stack boots and services can reach PostgreSQL and Redis.
+- [x] Add Docker Compose for local self-hosting:
+  - [x] PostgreSQL with pgvector
+  - [x] Redis
+- [x] Set up `.env` and `.env.example` with required local variables.
+- [x] Confirm the local stack boots and services can reach PostgreSQL and Redis.
 
 ### Day 3: Database Foundation
 
@@ -611,7 +665,9 @@ should end with a working checkpoint that can be run locally.
   - [ ] Sample text knowledge source
 - [ ] Add self-host setup docs:
   - [ ] `cp .env.example .env`
-  - [ ] `docker compose up`
+  - [ ] `colima start`
+  - [ ] `pnpm infra:up`
+  - [ ] `pnpm infra:check`
   - [ ] `pnpm db:migrate`
   - [ ] Dashboard URL
   - [ ] Widget demo URL
