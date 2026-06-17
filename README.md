@@ -517,32 +517,20 @@ should end with a working checkpoint that can be run locally.
 - [x] Configure typescript, turbo, biome and zed setting.
 - [x] Add root scripts and verify.
 
-### Day 2: Local Runtime
+### Day 2: Local Runtime && Database foundation
 
 - [x] Add Docker Compose for local self-hosting:
   - [x] PostgreSQL with pgvector
   - [x] Redis
 - [x] Set up `.env` and `.env.example` with required local variables.
 - [x] Confirm the local stack boots and services can reach PostgreSQL and Redis.
+- [x] Init `packages/db` using drizzle ORM and PostgreSQL.
+- [x] Add db related scripts: push, generate, migrate and studio.
+- [x] Create simple table and apply changes to local database
+- [x] Replace test `users` table with [Better-Auth](https://better-auth.com/docs/installation#create-database-tables) required schemas.
 
-### Day 3: Database Foundation
-
-- [ ] Implement Drizzle schema:
-  - [ ] Better Auth tables
-  - [ ] `workspace`
-  - [ ] `workspace_member`
-  - [ ] `chatbot`
-  - [ ] `llm_provider`
-  - [ ] `knowledge_source`
-  - [ ] `knowledge_chunk`
-  - [ ] `embed_key`
-  - [ ] `chat_session`
-  - [ ] `chat_message`
-  - [ ] `rag_trace`
-  - [ ] `usage_event`
-- [ ] Add migrations and migration scripts.
-- [ ] Run migrations against local PostgreSQL.
-- [ ] Verify pgvector extension and vector columns work.
+### Day 3: Database ERD and schemas
+- [ ] Finalize ERD and implement rest schemas.
 
 ### Day 4: Auth and Workspace Bootstrap
 
