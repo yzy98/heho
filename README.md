@@ -431,3 +431,226 @@ Docker Compose self-host MVP
   -> answer visitor questions with citations
   -> inspect RAG trace
 ```
+
+## Development Plan
+
+The first development target is a tight two-week MVP focused on one complete
+flow:
+
+```txt
+self-host Docker stack
+  -> admin dashboard
+  -> configure LLM provider
+  -> create chatbot
+  -> add text/URL knowledge source
+  -> index into pgvector
+  -> generate public embed key
+  -> install widget
+  -> visitor asks question
+  -> chatbot answers with citations
+  -> dashboard shows RAG trace
+```
+
+The priority is an end-to-end product loop, not a broad platform. Each day
+should end with a working checkpoint that can be run locally.
+
+### Day 1: Project Skeleton
+
+- [ ] Scaffold monorepo basic skeleton.
+- [ ] Configure typescript, turbo, biome and zed setting.
+- [ ] Add root scripts and verify.
+
+### Day 2: Local Runtime
+
+- [ ] Add Docker Compose for local self-hosting:
+  - [ ] PostgreSQL with pgvector
+  - [ ] Redis
+  - [ ] API server
+  - [ ] Worker
+  - [ ] Dashboard
+- [ ] Set up `.env` and `.env.example` with required local variables.
+- [ ] Confirm the local stack boots and services can reach PostgreSQL and Redis.
+
+### Day 3: Database Foundation
+
+- [ ] Implement Drizzle schema:
+  - [ ] Better Auth tables
+  - [ ] `workspace`
+  - [ ] `workspace_member`
+  - [ ] `chatbot`
+  - [ ] `llm_provider`
+  - [ ] `knowledge_source`
+  - [ ] `knowledge_chunk`
+  - [ ] `embed_key`
+  - [ ] `chat_session`
+  - [ ] `chat_message`
+  - [ ] `rag_trace`
+  - [ ] `usage_event`
+- [ ] Add migrations and migration scripts.
+- [ ] Run migrations against local PostgreSQL.
+- [ ] Verify pgvector extension and vector columns work.
+
+### Day 4: Auth and Workspace Bootstrap
+
+- [ ] Wire Better Auth into the API and dashboard.
+- [ ] Add dashboard sign-in page.
+- [ ] Auto-create a default workspace for the first signed-in user.
+- [ ] Add minimal workspace membership roles:
+  - [ ] `owner`
+  - [ ] `member`
+- [ ] Add `/workspaces/current` API.
+- [ ] Show the current workspace in the dashboard shell.
+
+### Day 5: Chatbot and Provider Setup
+
+- [ ] Add chatbot CRUD API and dashboard form.
+- [ ] Add OpenAI-compatible provider API and dashboard form.
+- [ ] Encrypt provider API keys with `APP_ENCRYPTION_KEY`.
+- [ ] Store provider config:
+  - [ ] `base_url`
+  - [ ] `api_key`
+  - [ ] `chat_model`
+  - [ ] `embedding_model`
+- [ ] Add a dashboard onboarding checklist showing chatbot and provider setup status.
+
+### Day 6: Embed Keys and Domain Allowlist
+
+- [ ] Generate `pk_*` public embed keys.
+- [ ] Store embed key hashes, not raw keys.
+- [ ] Store key prefixes for dashboard display.
+- [ ] Add optional domain allowlist per embed key.
+- [ ] Add embed key dashboard page.
+- [ ] Show local install snippet for the selected chatbot.
+
+### Day 7: Text Source Ingestion
+
+- [ ] Add knowledge source API and dashboard page.
+- [ ] Support `text` sources.
+- [ ] Add BullMQ ingestion queue.
+- [ ] Implement deterministic chunking in `packages/rag`.
+- [ ] Generate embeddings through the configured OpenAI-compatible provider.
+- [ ] Store chunks in PostgreSQL and vectors in pgvector.
+- [ ] Mark sources as `ready` or `failed`.
+- [ ] Show indexed chunks in the dashboard.
+
+### Day 8: URL Source Ingestion
+
+- [ ] Support `url` sources.
+- [ ] Fetch URL content server-side.
+- [ ] Strip scripts, styles, and obvious navigation noise.
+- [ ] Extract title and readable body text.
+- [ ] Reuse the Day 7 ingestion pipeline.
+- [ ] Show URL source status, indexed chunks, and ingestion errors in the dashboard.
+
+### Day 9: Retrieval and Prompt Assembly
+
+- [ ] Embed visitor questions.
+- [ ] Retrieve top chunks from pgvector.
+- [ ] Map retrieved chunks back to sources.
+- [ ] Build prompt assembly in `packages/rag`.
+- [ ] Include source titles and citation markers in the prompt context.
+- [ ] Add retrieval test endpoint or internal debug action for dashboard validation.
+
+### Day 10: Public Widget Chat API
+
+- [ ] Implement public widget API:
+  - [ ] `GET /widget/config?key=pk_xxx`
+  - [ ] `POST /widget/sessions`
+  - [ ] `POST /widget/messages`
+- [ ] Validate embed key hash.
+- [ ] Validate domain allowlist.
+- [ ] Create or reuse chat sessions.
+- [ ] Save visitor and assistant messages.
+- [ ] Return non-streaming MVP response:
+  - [ ] `answer`
+  - [ ] `citations`
+  - [ ] `traceId`
+
+### Day 11: Transparent RAG Trace
+
+- [ ] Store RAG trace for every widget answer:
+  - [ ] Visitor question
+  - [ ] Retrieved chunks
+  - [ ] Retrieval scores
+  - [ ] Prompt preview
+  - [ ] Model name
+  - [ ] Token usage when available
+  - [ ] Latency
+  - [ ] Citations
+- [ ] Add chat logs page.
+- [ ] Add RAG trace detail page.
+- [ ] Add usage events for chat, embedding, retrieval, and ingestion.
+
+### Day 12: Website Widget
+
+- [ ] Build `packages/widget`:
+  - [ ] Vanilla JavaScript build
+  - [ ] Shadow DOM isolation
+  - [ ] Floating button
+  - [ ] Chat panel
+  - [ ] Welcome message
+  - [ ] Message input
+  - [ ] Loading state
+  - [ ] Answer rendering
+  - [ ] Citations list
+  - [ ] Error state
+  - [ ] Basic theme variables
+- [ ] Add local embed snippet support:
+
+  ```html
+  <script
+    src="http://localhost:3000/widget.js"
+    data-chatbot-key="pk_xxx"
+  ></script>
+  ```
+
+### Day 13: Demo and Self-Host Docs
+
+- [ ] Add demo assets:
+  - [ ] Demo HTML page with widget installed
+  - [ ] Sample text knowledge source
+- [ ] Add self-host setup docs:
+  - [ ] `cp .env.example .env`
+  - [ ] `docker compose up`
+  - [ ] `pnpm db:migrate`
+  - [ ] Dashboard URL
+  - [ ] Widget demo URL
+- [ ] Polish dashboard empty states and error states.
+- [ ] Make ingestion failure messages visible.
+
+### Day 14: End-to-End Hardening
+
+- [ ] Run acceptance test:
+  - [ ] Admin signs in
+  - [ ] Default workspace is created
+  - [ ] Admin creates chatbot
+  - [ ] Admin saves provider config
+  - [ ] Admin adds text source
+  - [ ] Source is indexed into chunks
+  - [ ] Admin creates embed key
+  - [ ] Widget loads with public key
+  - [ ] Visitor asks question
+  - [ ] Answer includes citations
+  - [ ] Dashboard shows chat log
+  - [ ] Dashboard shows RAG trace
+  - [ ] Wrong domain is rejected when allowlist is set
+- [ ] Run required checks:
+  - [ ] `pnpm check`
+  - [ ] `pnpm typecheck`
+  - [ ] `pnpm build`
+- [ ] Fix blocking issues only.
+- [ ] Tag the result as the first local MVP milestone.
+
+### Deferred Until After MVP
+
+- [ ] Streaming responses
+- [ ] React package
+- [ ] File uploads
+- [ ] Sitemap ingestion
+- [ ] SSO/SAML
+- [ ] Advanced RBAC
+- [ ] Billing
+- [ ] Hosted cloud
+- [ ] Human support handoff
+- [ ] Workflow canvas
+- [ ] Multi-agent orchestration
