@@ -528,11 +528,10 @@ should end with a working checkpoint that can be run locally.
 - [x] Add db related scripts: push, generate, migrate and studio.
 - [x] Create simple table and apply changes to local database
 - [x] Replace test `users` table with [Better-Auth](https://better-auth.com/docs/installation#create-database-tables) required schemas.
+- [x] Add [organization-related schemas](https://better-auth.com/docs/plugins/organization#schema).
+- [x] Draw ERD and implement `llmProvider` and `chatbot` schemas.
 
-### Day 3: Database ERD and schemas
-- [ ] Finalize ERD and implement rest schemas.
-
-### Day 4: Auth and Workspace Bootstrap
+### Day 3: Auth and Workspace Bootstrap
 
 - [ ] Wire Better Auth into the API and dashboard.
 - [ ] Add dashboard sign-in page.
@@ -543,7 +542,7 @@ should end with a working checkpoint that can be run locally.
 - [ ] Add `/workspaces/current` API.
 - [ ] Show the current workspace in the dashboard shell.
 
-### Day 5: Chatbot and Provider Setup
+### Day 4: Chatbot and Provider Setup
 
 - [ ] Add chatbot CRUD API and dashboard form.
 - [ ] Add OpenAI-compatible provider API and dashboard form.
@@ -555,7 +554,7 @@ should end with a working checkpoint that can be run locally.
   - [ ] `embedding_model`
 - [ ] Add a dashboard onboarding checklist showing chatbot and provider setup status.
 
-### Day 6: Embed Keys and Domain Allowlist
+### Day 5: Embed Keys and Domain Allowlist
 
 - [ ] Generate `pk_*` public embed keys.
 - [ ] Store embed key hashes, not raw keys.
@@ -564,7 +563,7 @@ should end with a working checkpoint that can be run locally.
 - [ ] Add embed key dashboard page.
 - [ ] Show local install snippet for the selected chatbot.
 
-### Day 7: Text Source Ingestion
+### Day 6: Text Source Ingestion
 
 - [ ] Add knowledge source API and dashboard page.
 - [ ] Support `text` sources.
@@ -575,7 +574,7 @@ should end with a working checkpoint that can be run locally.
 - [ ] Mark sources as `ready` or `failed`.
 - [ ] Show indexed chunks in the dashboard.
 
-### Day 8: URL Source Ingestion
+### Day 7: URL Source Ingestion
 
 - [ ] Support `url` sources.
 - [ ] Fetch URL content server-side.
@@ -584,7 +583,7 @@ should end with a working checkpoint that can be run locally.
 - [ ] Reuse the Day 7 ingestion pipeline.
 - [ ] Show URL source status, indexed chunks, and ingestion errors in the dashboard.
 
-### Day 9: Retrieval and Prompt Assembly
+### Day 8: Retrieval and Prompt Assembly
 
 - [ ] Embed visitor questions.
 - [ ] Retrieve top chunks from pgvector.
@@ -593,7 +592,7 @@ should end with a working checkpoint that can be run locally.
 - [ ] Include source titles and citation markers in the prompt context.
 - [ ] Add retrieval test endpoint or internal debug action for dashboard validation.
 
-### Day 10: Public Widget Chat API
+### Day 9: Public Widget Chat API
 
 - [ ] Implement public widget API:
   - [ ] `GET /widget/config?key=pk_xxx`
@@ -608,7 +607,7 @@ should end with a working checkpoint that can be run locally.
   - [ ] `citations`
   - [ ] `traceId`
 
-### Day 11: Transparent RAG Trace
+### Day 10: Transparent RAG Trace
 
 - [ ] Store RAG trace for every widget answer:
   - [ ] Visitor question
@@ -623,7 +622,7 @@ should end with a working checkpoint that can be run locally.
 - [ ] Add RAG trace detail page.
 - [ ] Add usage events for chat, embedding, retrieval, and ingestion.
 
-### Day 12: Website Widget
+### Day 11: Website Widget
 
 - [ ] Build `packages/widget`:
   - [ ] Vanilla JavaScript build
@@ -646,7 +645,7 @@ should end with a working checkpoint that can be run locally.
   ></script>
   ```
 
-### Day 13: Demo and Self-Host Docs
+### Day 12: Demo and Self-Host Docs
 
 - [ ] Add demo assets:
   - [ ] Demo HTML page with widget installed
@@ -662,7 +661,7 @@ should end with a working checkpoint that can be run locally.
 - [ ] Polish dashboard empty states and error states.
 - [ ] Make ingestion failure messages visible.
 
-### Day 14: End-to-End Hardening
+### Day 13: End-to-End Hardening
 
 - [ ] Run acceptance test:
   - [ ] Admin signs in
