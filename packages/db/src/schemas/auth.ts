@@ -42,6 +42,8 @@ export const session = pgTable("session", {
     precision: 6,
     withTimezone: true,
   }).notNull(),
+  activeOrganizationId: text(),
+  activeTeamId: text(),
 });
 
 export const account = pgTable("account", {
@@ -90,4 +92,40 @@ export const verification = pgTable("verification", {
     precision: 6,
     withTimezone: true,
   }).notNull(),
+});
+
+export const organization = pgTable("organization", {
+  id: text().primaryKey(),
+  name: text().notNull(),
+  slug: varchar({ length: 255 }).notNull().unique(),
+  logo: text(),
+  metadata: text(),
+  createdAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
+});
+
+export const member = pgTable("member", {
+  id: text().primaryKey(),
+  userId: text()
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  organizationId: text()
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  role: text().notNull(),
+  createdAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
+});
+
+export const invitation = pgTable("invitation", {
+  id: text().primaryKey(),
+  email: text().notNull(),
+  inviterId: text()
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  organizationId: text()
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  role: text(),
+  status: text().notNull(),
+  createdAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
+  expiresAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
 });
