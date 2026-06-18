@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@heho/api-client": "workspace:*",
     "@heho/ui": "workspace:*",
     "@tanstack/react-router": "^1.170.16",
     "lucide-react": "catalog:",

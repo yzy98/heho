@@ -1,9 +1,10 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import health from "./routes/health";
 
 const app = new Hono();
 
-app.get("/", (c) => c.text("Hello Hono!"));
+const routes = app.route("/health", health);
 
 serve(
   {
@@ -14,3 +15,5 @@ serve(
     console.log(`Server is running on http://localhost:${info.port}`);
   }
 );
+
+export type AppType = typeof routes;
