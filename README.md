@@ -66,7 +66,7 @@ The first MVP should prove one thing:
 ### MVP Includes
 
 - Dashboard authentication
-- Workspace and member foundation
+- Organization and member foundation
 - Chatbot creation and configuration
 - OpenAI-compatible LLM provider configuration
 - Text and URL knowledge sources
@@ -100,27 +100,33 @@ Heho should be optimized for self-hosting first.
 Recommended stack:
 
 ```txt
-Monorepo:        pnpm + Turborepo
-Language:        TypeScript
-Dashboard:       Next.js / React
-API Server:      Hono on Node.js
-Worker:          Node.js background worker
-Database:        PostgreSQL
-Vector Search:   pgvector
-ORM:             Drizzle ORM
-Queue:           Redis + BullMQ
-File Storage:    S3-compatible storage, MinIO for local self-host
-Auth:            Better Auth
-Widget:          Vite library build, Shadow DOM
-React Package:   React chatbot component
-SDK:             Typed TypeScript client
-Deployment:      Docker Compose first
+Monorepo:         pnpm + Turborepo
+Language:         TypeScript
+Dashboard:        Vite + React
+Dashboard Router: TanStack Router
+Server State:     TanStack Query
+API Server:       Hono on Node.js
+Worker:           Node.js background worker
+Database:         PostgreSQL
+Vector Search:    pgvector
+ORM:              Drizzle ORM
+Queue:            Redis + BullMQ
+File Storage:     S3-compatible storage, MinIO for local self-host
+Auth:             Better Auth
+Widget:           Vite library build, Shadow DOM
+React Package:    React chatbot component
+SDK:              Typed TypeScript client
+Deployment:       Docker Compose first
 ```
 
 Why this stack:
 
 - PostgreSQL + pgvector keeps relational metadata, chunks, chat logs, and vectors easy to inspect and back up.
 - Hono on Node.js keeps the API lightweight while remaining self-host friendly.
+- Vite keeps the dashboard a lightweight static client while Hono remains the
+  single server-side application.
+- TanStack Router provides type-safe dashboard routes and protected layouts,
+  while TanStack Query manages API-backed server state.
 - Redis + BullMQ keeps ingestion, scraping, chunking, and embedding out of request/response paths.
 - S3-compatible storage lets teams use local MinIO, AWS S3, Cloudflare R2, Tigris, or similar storage.
 - A vanilla widget plus React wrapper makes the chatbot usable on almost any website.
@@ -129,7 +135,7 @@ Why this stack:
 
 ```txt
 apps/
-  dashboard      # Admin console
+  dashboard      # Vite + React admin console
   api            # Hono API server
   worker         # Ingestion, embedding, indexing jobs
 
@@ -145,9 +151,12 @@ packages/
 
 ## Core Concepts
 
-### Workspace
+### Organization
 
-A workspace represents a company or tenant. It owns chatbots, knowledge sources, provider configs, embed keys, chat logs, and usage.
+Heho uses the Better Auth organization plugin as its company and tenant model.
+An organization owns chatbots, knowledge sources, provider configs, embed keys,
+chat logs, and usage. Better Auth members link dashboard users to organizations;
+Heho does not maintain an additional tenant or membership model.
 
 ### Chatbot
 
@@ -230,8 +239,8 @@ Initial entities:
 
 ```txt
 user
-workspace
-workspace_member
+organization
+member
 
 chatbot
 llm_provider
@@ -249,8 +258,8 @@ High-level relationships:
 
 ```txt
 user
-  -> workspace_member
-      -> workspace
+  -> member
+      -> organization
           -> chatbot
           -> llm_provider
           -> knowledge_source
@@ -262,7 +271,8 @@ user
           -> usage_event
 ```
 
-The workspace is the tenant boundary. All chatbot, knowledge, conversation, and usage data belongs to a workspace.
+The Better Auth organization is the tenant boundary. All chatbot, knowledge,
+conversation, and usage data belongs to an organization.
 
 ## Widget Integration
 
@@ -313,8 +323,8 @@ const response = await heho.chat.sendMessage({
 - Provider API keys must be encrypted at rest.
 - Widget requests must be rate-limited.
 - Chatbot access must be scoped by embed key.
-- Admin APIs must require authenticated workspace membership.
-- RAG traces must never leak data across workspaces.
+- Admin APIs must require authenticated organization membership.
+- RAG traces must never leak data across organizations.
 - Secret API keys must only be used server-side.
 
 ## RAG Pipeline
@@ -379,11 +389,27 @@ Colima / Docker Compose
   -> Redis
 
 pnpm / Turborepo
-  -> dashboard
-  -> api
+  -> dashboard (Vite on localhost:3000)
+  -> api (Hono on localhost:4000)
   -> worker
   -> packages
 ```
+
+The dashboard and API use a same-origin path contract:
+
+```txt
+/       -> dashboard
+/api/*  -> Hono API
+```
+
+During local development, the Vite development server proxies `/api` to the
+Hono API on `http://localhost:4000`. The dashboard calls relative `/api` URLs,
+including Better Auth at `/api/auth/*`, so authentication cookies remain
+same-origin and the browser client does not depend on cross-origin cookie
+configuration.
+
+In production, a reverse proxy or the self-host deployment serves the static
+dashboard and forwards `/api/*` to Hono under the same public origin.
 
 Start a development session:
 
@@ -539,31 +565,33 @@ not deferred hardening tasks.
 - [x] Add [organization-related schemas](https://better-auth.com/docs/plugins/organization#schema).
 - [x] Draw ERD and implement `llmProvider` and `chatbot` schemas.
 
-### Day 3: Auth and Workspace Bootstrap
+### Day 3: Auth and Organization Bootstrap
 
-- [ ] Add the API and dashboard app foundations required for authentication.
+- [ ] Add the Hono API and Vite + React dashboard app foundations.
+- [ ] Configure TanStack Router, TanStack Query, and the local `/api` proxy.
 - [ ] Configure Better Auth on the API with the existing Drizzle schemas.
 - [ ] Add the Better Auth route handler and dashboard auth client.
 - [ ] Add a minimal email/password sign-up and sign-in page.
-- [ ] Add an idempotent workspace bootstrap:
-  - [ ] The first signed-in user receives one default workspace.
-  - [ ] The user becomes the workspace `owner`.
+- [ ] Add an idempotent organization bootstrap using the Better Auth
+      organization plugin:
+  - [ ] The first signed-in user receives one default organization.
+  - [ ] The user becomes the organization `owner`.
   - [ ] Repeated or concurrent bootstrap requests do not create duplicates.
-- [ ] Restrict MVP workspace roles to:
+- [ ] Restrict MVP organization membership roles to:
   - [ ] `owner`
   - [ ] `member`
-- [ ] Add authenticated `/workspaces/current`.
-- [ ] Derive the current workspace from the authenticated membership; never
-      trust a client-provided workspace ID.
-- [ ] Show the current workspace in the dashboard shell.
+- [ ] Add authenticated `/organizations/current`.
+- [ ] Derive the current organization from the authenticated Better Auth
+      membership; never trust a client-provided organization ID.
+- [ ] Show the current organization in the dashboard shell.
 - [ ] Acceptance:
-  - [ ] A new user can sign up, sign in, and see one default workspace.
-  - [ ] A returning user does not receive another default workspace.
-  - [ ] An unauthenticated request to `/workspaces/current` is rejected.
+  - [ ] A new user can sign up, sign in, and see one default organization.
+  - [ ] A returning user does not receive another default organization.
+  - [ ] An unauthenticated request to `/organizations/current` is rejected.
 - [ ] Run:
   - [ ] `pnpm check`
   - [ ] `pnpm typecheck`
-  - [ ] Relevant auth and workspace tests.
+  - [ ] Relevant auth and organization tests.
 
 ### Day 4: Chatbot and Provider Setup
 
@@ -577,12 +605,12 @@ not deferred hardening tasks.
   - [ ] `chat_model`
   - [ ] `embedding_model`
 - [ ] Add a dashboard onboarding checklist showing chatbot and provider setup status.
-- [ ] Enforce workspace membership on every chatbot and provider operation.
-- [ ] Prevent a chatbot from referencing a provider from another workspace.
+- [ ] Enforce organization membership on every chatbot and provider operation.
+- [ ] Prevent a chatbot from referencing a provider from another organization.
 - [ ] Acceptance:
   - [ ] An owner can save a provider and create a chatbot.
   - [ ] The raw provider API key is never returned to the dashboard.
-  - [ ] Cross-workspace reads and references are rejected.
+  - [ ] Cross-organization reads and references are rejected.
 - [ ] Run:
   - [ ] `pnpm check`
   - [ ] `pnpm typecheck`
@@ -597,11 +625,11 @@ not deferred hardening tasks.
 - [ ] Add optional domain allowlist per embed key.
 - [ ] Add embed key dashboard page.
 - [ ] Show local install snippet for the selected chatbot.
-- [ ] Enforce workspace membership on embed key management.
+- [ ] Enforce organization membership on embed key management.
 - [ ] Acceptance:
   - [ ] A key is displayed once after creation.
   - [ ] Only its hash and prefix remain stored.
-  - [ ] The key resolves only to its assigned chatbot and workspace.
+  - [ ] The key resolves only to its assigned chatbot and organization.
 - [ ] Run:
   - [ ] `pnpm check`
   - [ ] `pnpm typecheck`
@@ -635,7 +663,7 @@ not deferred hardening tasks.
 - [ ] Show indexed chunks and the resulting trace in the dashboard.
 - [ ] Acceptance:
   - [ ] An owner can add text, index it, ask a question, and receive a cited answer.
-  - [ ] The answer, retrieved chunks, and trace belong to the same workspace.
+  - [ ] The answer, retrieved chunks, and trace belong to the same organization.
   - [ ] Failed ingestion exposes an actionable error.
 - [ ] Run:
   - [ ] `pnpm check`
@@ -689,7 +717,7 @@ not deferred hardening tasks.
 - [ ] Acceptance:
   - [ ] A valid key and allowed origin receive a cited answer.
   - [ ] Invalid keys, blocked origins, and rate-limit violations are rejected.
-  - [ ] No public request can read data from another workspace.
+  - [ ] No public request can read data from another organization.
 - [ ] Run:
   - [ ] `pnpm check`
   - [ ] `pnpm typecheck`
@@ -742,7 +770,7 @@ not deferred hardening tasks.
 - [ ] Record usage events for chat, embedding, retrieval, and ingestion.
 - [ ] Acceptance:
   - [ ] An owner can open a widget conversation and inspect why its answer was generated.
-  - [ ] Trace and usage queries are restricted to the current workspace.
+  - [ ] Trace and usage queries are restricted to the current organization.
 - [ ] Run:
   - [ ] `pnpm check`
   - [ ] `pnpm typecheck`
@@ -759,7 +787,8 @@ not deferred hardening tasks.
   - [ ] Embed key created
   - [ ] Widget installed
 - [ ] Verify all provider credentials remain server-only.
-- [ ] Verify every admin query derives the current workspace from membership.
+- [ ] Verify every admin query derives the current organization from Better
+      Auth membership.
 - [ ] Acceptance:
   - [ ] A new owner can complete setup without manual database operations.
   - [ ] The dashboard clearly identifies the next incomplete setup step.
@@ -795,7 +824,7 @@ not deferred hardening tasks.
 
 - [ ] Run acceptance test:
   - [ ] Admin signs in
-  - [ ] Default workspace is created
+  - [ ] Default organization is created
   - [ ] Admin creates chatbot
   - [ ] Admin saves provider config
   - [ ] Admin adds text source
@@ -808,11 +837,11 @@ not deferred hardening tasks.
   - [ ] Dashboard shows RAG trace
   - [ ] Wrong domain is rejected when allowlist is set
 - [ ] Test retry and failure paths:
-  - [ ] Repeated workspace bootstrap
+  - [ ] Repeated organization bootstrap
   - [ ] Repeated ingestion job
   - [ ] Provider failure
   - [ ] Invalid embed key
-  - [ ] Cross-workspace access attempt
+  - [ ] Cross-organization access attempt
 - [ ] Run the complete required checks:
   - [ ] `pnpm check`
   - [ ] `pnpm typecheck`
