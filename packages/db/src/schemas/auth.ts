@@ -129,3 +129,13 @@ export const invitation = pgTable("invitation", {
   createdAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
   expiresAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
 });
+
+export const authSchema = {
+  user,
+  session,
+  account,
+  verification,
+  organization,
+  member,
+  invitation,
+};

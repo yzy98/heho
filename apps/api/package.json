@@ -14,8 +14,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@heho/auth": "workspace:*",
+    "@heho/db": "workspace:*",
     "@hono/node-server": "^2.0.5",
-    "hono": "catalog:"
+    "dotenv": "catalog:",
+    "hono": "catalog:",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",

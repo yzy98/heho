@@ -569,7 +569,7 @@ not deferred hardening tasks.
 
 - [x] Add the Hono API and Vite + React dashboard app foundations.
 - [x] Configure TanStack Router, TanStack Query, and the local `/api` proxy.
-- [ ] Configure Better Auth on the API with the existing Drizzle schemas.
+- [x] Configure Better Auth on the API with the existing Drizzle schemas.
 - [ ] Add the Better Auth route handler and dashboard auth client.
 - [ ] Add a minimal email/password sign-up and sign-in page.
 - [ ] Add an idempotent organization bootstrap using the Better Auth
