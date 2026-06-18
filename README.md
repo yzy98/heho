@@ -509,7 +509,15 @@ self-host Docker stack
 ```
 
 The priority is an end-to-end product loop, not a broad platform. Each day
-should end with a working checkpoint that can be run locally.
+must end with:
+
+- A locally runnable product checkpoint.
+- An observable acceptance result.
+- Relevant automated checks passing.
+
+Database schemas and migrations are introduced by the vertical slice that
+first needs them. Security and tenant isolation are acceptance requirements,
+not deferred hardening tasks.
 
 ### Day 1: Project Skeleton
 
@@ -533,17 +541,33 @@ should end with a working checkpoint that can be run locally.
 
 ### Day 3: Auth and Workspace Bootstrap
 
-- [ ] Wire Better Auth into the API and dashboard.
-- [ ] Add dashboard sign-in page.
-- [ ] Auto-create a default workspace for the first signed-in user.
-- [ ] Add minimal workspace membership roles:
+- [ ] Add the API and dashboard app foundations required for authentication.
+- [ ] Configure Better Auth on the API with the existing Drizzle schemas.
+- [ ] Add the Better Auth route handler and dashboard auth client.
+- [ ] Add a minimal email/password sign-up and sign-in page.
+- [ ] Add an idempotent workspace bootstrap:
+  - [ ] The first signed-in user receives one default workspace.
+  - [ ] The user becomes the workspace `owner`.
+  - [ ] Repeated or concurrent bootstrap requests do not create duplicates.
+- [ ] Restrict MVP workspace roles to:
   - [ ] `owner`
   - [ ] `member`
-- [ ] Add `/workspaces/current` API.
+- [ ] Add authenticated `/workspaces/current`.
+- [ ] Derive the current workspace from the authenticated membership; never
+      trust a client-provided workspace ID.
 - [ ] Show the current workspace in the dashboard shell.
+- [ ] Acceptance:
+  - [ ] A new user can sign up, sign in, and see one default workspace.
+  - [ ] A returning user does not receive another default workspace.
+  - [ ] An unauthenticated request to `/workspaces/current` is rejected.
+- [ ] Run:
+  - [ ] `pnpm check`
+  - [ ] `pnpm typecheck`
+  - [ ] Relevant auth and workspace tests.
 
 ### Day 4: Chatbot and Provider Setup
 
+- [ ] Add the required `llm_provider` and `chatbot` migrations and constraints.
 - [ ] Add chatbot CRUD API and dashboard form.
 - [ ] Add OpenAI-compatible provider API and dashboard form.
 - [ ] Encrypt provider API keys with `APP_ENCRYPTION_KEY`.
@@ -553,63 +577,103 @@ should end with a working checkpoint that can be run locally.
   - [ ] `chat_model`
   - [ ] `embedding_model`
 - [ ] Add a dashboard onboarding checklist showing chatbot and provider setup status.
+- [ ] Enforce workspace membership on every chatbot and provider operation.
+- [ ] Prevent a chatbot from referencing a provider from another workspace.
+- [ ] Acceptance:
+  - [ ] An owner can save a provider and create a chatbot.
+  - [ ] The raw provider API key is never returned to the dashboard.
+  - [ ] Cross-workspace reads and references are rejected.
+- [ ] Run:
+  - [ ] `pnpm check`
+  - [ ] `pnpm typecheck`
+  - [ ] Relevant chatbot, provider, encryption, and tenant-isolation tests.
 
 ### Day 5: Embed Keys and Domain Allowlist
 
+- [ ] Add the embed key schema and migration.
 - [ ] Generate `pk_*` public embed keys.
 - [ ] Store embed key hashes, not raw keys.
 - [ ] Store key prefixes for dashboard display.
 - [ ] Add optional domain allowlist per embed key.
 - [ ] Add embed key dashboard page.
 - [ ] Show local install snippet for the selected chatbot.
+- [ ] Enforce workspace membership on embed key management.
+- [ ] Acceptance:
+  - [ ] A key is displayed once after creation.
+  - [ ] Only its hash and prefix remain stored.
+  - [ ] The key resolves only to its assigned chatbot and workspace.
+- [ ] Run:
+  - [ ] `pnpm check`
+  - [ ] `pnpm typecheck`
+  - [ ] Relevant embed key and tenant-isolation tests.
 
-### Day 6: Text Source Ingestion
+### Day 6: Thin End-to-End Text RAG Slice
 
-- [ ] Add knowledge source API and dashboard page.
+- [ ] Add the minimal schemas and migrations for:
+  - [ ] `knowledge_source`
+  - [ ] `knowledge_chunk`
+  - [ ] `chat_session`
+  - [ ] `chat_message`
+  - [ ] `rag_trace`
+- [ ] Add a minimal text knowledge source API and dashboard form.
 - [ ] Support `text` sources.
-- [ ] Add BullMQ ingestion queue.
 - [ ] Implement deterministic chunking in `packages/rag`.
 - [ ] Generate embeddings through the configured OpenAI-compatible provider.
 - [ ] Store chunks in PostgreSQL and vectors in pgvector.
 - [ ] Mark sources as `ready` or `failed`.
-- [ ] Show indexed chunks in the dashboard.
-
-### Day 7: URL Source Ingestion
-
-- [ ] Support `url` sources.
-- [ ] Fetch URL content server-side.
-- [ ] Strip scripts, styles, and obvious navigation noise.
-- [ ] Extract title and readable body text.
-- [ ] Reuse the Day 7 ingestion pipeline.
-- [ ] Show URL source status, indexed chunks, and ingestion errors in the dashboard.
-
-### Day 8: Retrieval and Prompt Assembly
-
 - [ ] Embed visitor questions.
 - [ ] Retrieve top chunks from pgvector.
 - [ ] Map retrieved chunks back to sources.
-- [ ] Build prompt assembly in `packages/rag`.
+- [ ] Assemble the prompt in `packages/rag`.
 - [ ] Include source titles and citation markers in the prompt context.
-- [ ] Add retrieval test endpoint or internal debug action for dashboard validation.
-
-### Day 9: Public Widget Chat API
-
-- [ ] Implement public widget API:
-  - [ ] `GET /widget/config?key=pk_xxx`
-  - [ ] `POST /widget/sessions`
-  - [ ] `POST /widget/messages`
-- [ ] Validate embed key hash.
-- [ ] Validate domain allowlist.
-- [ ] Create or reuse chat sessions.
-- [ ] Save visitor and assistant messages.
-- [ ] Return non-streaming MVP response:
+- [ ] Call the configured provider and save the visitor and assistant messages.
+- [ ] Save a minimal RAG trace in the same request.
+- [ ] Add an authenticated dashboard test action that returns:
   - [ ] `answer`
   - [ ] `citations`
   - [ ] `traceId`
+- [ ] Show indexed chunks and the resulting trace in the dashboard.
+- [ ] Acceptance:
+  - [ ] An owner can add text, index it, ask a question, and receive a cited answer.
+  - [ ] The answer, retrieved chunks, and trace belong to the same workspace.
+  - [ ] Failed ingestion exposes an actionable error.
+- [ ] Run:
+  - [ ] `pnpm check`
+  - [ ] `pnpm typecheck`
+  - [ ] RAG tests with deterministic provider and embedding adapters.
 
-### Day 10: Transparent RAG Trace
+### Day 7: Background Ingestion and URL Adapter
 
-- [ ] Store RAG trace for every widget answer:
+- [ ] Add BullMQ ingestion queue and worker processing.
+- [ ] Move text ingestion behind the queue without changing its observable result.
+- [ ] Add the URL knowledge source adapter:
+  - [ ] Fetch URL content server-side.
+  - [ ] Strip scripts, styles, and obvious navigation noise.
+  - [ ] Extract title and readable body text.
+  - [ ] Reuse the Day 6 ingestion pipeline.
+- [ ] Show queued, processing, ready, and failed states in the dashboard.
+- [ ] Make ingestion jobs idempotent and safe to retry.
+- [ ] Acceptance:
+  - [ ] Text and URL sources reach `ready` through the worker.
+  - [ ] Retrying a job does not create duplicate chunks.
+  - [ ] URL ingestion errors are visible in the dashboard.
+- [ ] Run:
+  - [ ] `pnpm check`
+  - [ ] `pnpm typecheck`
+  - [ ] Relevant queue, retry, text, and URL ingestion tests.
+
+### Day 8: Public Chat API with Trace
+
+- [ ] Implement:
+  - [ ] `GET /widget/config?key=pk_xxx`
+  - [ ] `POST /widget/sessions`
+  - [ ] `POST /widget/messages`
+- [ ] Validate the embed key hash.
+- [ ] Validate the request origin against the domain allowlist.
+- [ ] Add basic rate limiting for public widget requests.
+- [ ] Create or reuse chat sessions.
+- [ ] Reuse the Day 6 RAG module for every visitor message.
+- [ ] Store the complete MVP RAG trace:
   - [ ] Visitor question
   - [ ] Retrieved chunks
   - [ ] Retrieval scores
@@ -618,24 +682,33 @@ should end with a working checkpoint that can be run locally.
   - [ ] Token usage when available
   - [ ] Latency
   - [ ] Citations
-- [ ] Add chat logs page.
-- [ ] Add RAG trace detail page.
-- [ ] Add usage events for chat, embedding, retrieval, and ingestion.
+- [ ] Return:
+  - [ ] `answer`
+  - [ ] `citations`
+  - [ ] `traceId`
+- [ ] Acceptance:
+  - [ ] A valid key and allowed origin receive a cited answer.
+  - [ ] Invalid keys, blocked origins, and rate-limit violations are rejected.
+  - [ ] No public request can read data from another workspace.
+- [ ] Run:
+  - [ ] `pnpm check`
+  - [ ] `pnpm typecheck`
+  - [ ] Public chat, domain allowlist, rate-limit, and tenant-isolation tests.
 
-### Day 11: Website Widget
+### Day 9: Minimal Website Widget
 
-- [ ] Build `packages/widget`:
-  - [ ] Vanilla JavaScript build
-  - [ ] Shadow DOM isolation
+- [ ] Build the first runnable `packages/widget` slice:
+  - [ ] Vanilla JavaScript build.
+  - [ ] Shadow DOM isolation.
   - [ ] Floating button
   - [ ] Chat panel
-  - [ ] Welcome message
   - [ ] Message input
   - [ ] Loading state
   - [ ] Answer rendering
   - [ ] Citations list
   - [ ] Error state
-  - [ ] Basic theme variables
+- [ ] Load chatbot configuration through the public embed key.
+- [ ] Connect the widget to the Day 8 public chat API.
 - [ ] Add local embed snippet support:
 
   ```html
@@ -645,7 +718,57 @@ should end with a working checkpoint that can be run locally.
   ></script>
   ```
 
-### Day 12: Demo and Self-Host Docs
+- [ ] Acceptance:
+  - [ ] The widget loads on a plain local HTML page.
+  - [ ] A visitor can ask a question and see a cited answer.
+  - [ ] Loading, API failure, and blocked-domain states are visible.
+- [ ] Run:
+  - [ ] `pnpm check`
+  - [ ] `pnpm typecheck`
+  - [ ] `pnpm build`
+  - [ ] Widget integration test against the public API.
+
+### Day 10: Dashboard Observability
+
+- [ ] Add chat logs page.
+- [ ] Add RAG trace detail page.
+- [ ] Show:
+  - [ ] Visitor and assistant messages
+  - [ ] Retrieved chunks and scores
+  - [ ] Prompt preview
+  - [ ] Model and token usage
+  - [ ] Latency and citations
+- [ ] Add the `usage_event` schema and migration.
+- [ ] Record usage events for chat, embedding, retrieval, and ingestion.
+- [ ] Acceptance:
+  - [ ] An owner can open a widget conversation and inspect why its answer was generated.
+  - [ ] Trace and usage queries are restricted to the current workspace.
+- [ ] Run:
+  - [ ] `pnpm check`
+  - [ ] `pnpm typecheck`
+  - [ ] Relevant trace, usage, and tenant-isolation tests.
+
+### Day 11: Product Completion Pass
+
+- [ ] Add widget welcome message and basic theme variables.
+- [ ] Add dashboard empty states and actionable error states.
+- [ ] Complete the onboarding checklist for:
+  - [ ] Provider configured
+  - [ ] Chatbot created
+  - [ ] Knowledge source ready
+  - [ ] Embed key created
+  - [ ] Widget installed
+- [ ] Verify all provider credentials remain server-only.
+- [ ] Verify every admin query derives the current workspace from membership.
+- [ ] Acceptance:
+  - [ ] A new owner can complete setup without manual database operations.
+  - [ ] The dashboard clearly identifies the next incomplete setup step.
+- [ ] Run:
+  - [ ] `pnpm check`
+  - [ ] `pnpm typecheck`
+  - [ ] `pnpm build`
+
+### Day 12: Demo and Self-Host Documentation
 
 - [ ] Add demo assets:
   - [ ] Demo HTML page with widget installed
@@ -658,8 +781,15 @@ should end with a working checkpoint that can be run locally.
   - [ ] `pnpm db:migrate`
   - [ ] Dashboard URL
   - [ ] Widget demo URL
-- [ ] Polish dashboard empty states and error states.
-- [ ] Make ingestion failure messages visible.
+- [ ] Document required environment variables and secure key generation.
+- [ ] Verify the documented setup from a clean local checkout.
+- [ ] Acceptance:
+  - [ ] A developer can follow the documentation and run the complete demo.
+  - [ ] The demo includes a cited answer and an inspectable RAG trace.
+- [ ] Run:
+  - [ ] `pnpm check`
+  - [ ] `pnpm typecheck`
+  - [ ] `pnpm build`
 
 ### Day 13: End-to-End Hardening
 
@@ -677,11 +807,18 @@ should end with a working checkpoint that can be run locally.
   - [ ] Dashboard shows chat log
   - [ ] Dashboard shows RAG trace
   - [ ] Wrong domain is rejected when allowlist is set
-- [ ] Run required checks:
+- [ ] Test retry and failure paths:
+  - [ ] Repeated workspace bootstrap
+  - [ ] Repeated ingestion job
+  - [ ] Provider failure
+  - [ ] Invalid embed key
+  - [ ] Cross-workspace access attempt
+- [ ] Run the complete required checks:
   - [ ] `pnpm check`
   - [ ] `pnpm typecheck`
   - [ ] `pnpm build`
-- [ ] Fix blocking issues only.
+- [ ] Run the full automated test suite.
+- [ ] Fix release-blocking issues only.
 - [ ] Tag the result as the first local MVP milestone.
 
 ### Deferred Until After MVP
