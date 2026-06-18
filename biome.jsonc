@@ -12,5 +12,8 @@
         "noNamespaceImport": "off"
       }
     }
+  },
+  "files": {
+    "includes": ["!**/routeTree.gen.ts"]
   }
 }
