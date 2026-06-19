@@ -16,5 +16,22 @@
   },
   "files": {
     "includes": ["!**/routeTree.gen.ts"]
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["packages/ui/src/components/**/*.tsx"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noLabelWithoutControl": "off",
+            "useSemanticElements": "off"
+          },
+          "suspicious": {
+            "noArrayIndexKey": "off",
+            "noDoubleEquals": "off"
+          }
+        }
+      }
+    }
+  ]
 }

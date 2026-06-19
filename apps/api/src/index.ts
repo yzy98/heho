@@ -7,7 +7,7 @@ import { env } from "./env";
 // Create db instance
 const database = createDb(env.DATABASE_URL);
 
-// Create auth server instance
+// Create auth instance
 const auth = createAuthServer({
   db: database.db,
   baseURL: env.API_URL,
