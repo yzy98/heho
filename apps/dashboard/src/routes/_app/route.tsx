@@ -4,11 +4,14 @@ import { authClient } from "@/lib/auth-client";
 export const Route = createFileRoute("/_app")({
   beforeLoad: async () => {
     const { data: session } = await authClient.getSession();
+
     if (!session) {
       throw redirect({
         to: "/sign-in",
       });
     }
+
+    return { session };
   },
   component: AppLayout,
 });

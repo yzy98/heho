@@ -1,3 +1,4 @@
+import { Toaster } from "@heho/ui/components/sonner";
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
@@ -8,6 +9,7 @@ export const Route = createRootRoute({
 function RootLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <Toaster />
       <Outlet />
       {import.meta.env.DEV ? <TanStackRouterDevtools /> : null}
     </div>

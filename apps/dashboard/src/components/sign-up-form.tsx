@@ -13,8 +13,11 @@ import {
   FieldError,
   FieldGroup,
   FieldLabel,
+  FieldSet,
 } from "@heho/ui/components/field";
 import { Input } from "@heho/ui/components/input";
+import { toast } from "@heho/ui/components/sonner";
+import { Spinner } from "@heho/ui/components/spinner";
 import { useForm } from "@tanstack/react-form";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
@@ -55,9 +58,18 @@ export const SignUpForm = () => {
     },
     onSubmit: async ({ value }) => {
       const { confirmPassword: _, ...credentials } = value;
+
       await authClient.signUp.email(credentials, {
         onSuccess: () => {
           navigate({ to: "/" });
+        },
+        onError: (ctx) => {
+          if (ctx.error.code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL") {
+            toast.error("An account with this email already exists.");
+            return;
+          }
+
+          toast.error("Unable to create account. Please try again.");
         },
       });
     },
@@ -79,120 +91,137 @@ export const SignUpForm = () => {
             form.handleSubmit();
           }}
         >
-          <FieldGroup>
-            <form.Field name="name">
-              {(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Name</FieldLabel>
-                    <Input
-                      aria-invalid={isInvalid}
-                      autoComplete="name"
-                      id={field.name}
-                      name={field.name}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="John Doe"
-                      required
-                      type="text"
-                      value={field.state.value}
-                    />
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </Field>
-                );
-              }}
-            </form.Field>
-            <form.Field name="email">
-              {(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Email</FieldLabel>
-                    <Input
-                      aria-invalid={isInvalid}
-                      autoComplete="email"
-                      id={field.name}
-                      name={field.name}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="you@example.com"
-                      required
-                      type="email"
-                      value={field.state.value}
-                    />
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </Field>
-                );
-              }}
-            </form.Field>
-            <form.Field name="password">
-              {(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                    <Input
-                      aria-invalid={isInvalid}
-                      autoComplete="new-password"
-                      id={field.name}
-                      name={field.name}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      required
-                      type="password"
-                      value={field.state.value}
-                    />
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </Field>
-                );
-              }}
-            </form.Field>
-            <form.Field name="confirmPassword">
-              {(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
+              <FieldSet disabled={isSubmitting}>
+                <FieldGroup>
+                  <form.Field name="name">
+                    {(field) => {
+                      const isInvalid =
+                        field.state.meta.isTouched && !field.state.meta.isValid;
+                      return (
+                        <Field data-invalid={isInvalid}>
+                          <FieldLabel htmlFor={field.name}>Name</FieldLabel>
+                          <Input
+                            aria-invalid={isInvalid}
+                            autoComplete="name"
+                            id={field.name}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            placeholder="John Doe"
+                            required
+                            type="text"
+                            value={field.state.value}
+                          />
+                          {isInvalid && (
+                            <FieldError errors={field.state.meta.errors} />
+                          )}
+                        </Field>
+                      );
+                    }}
+                  </form.Field>
+                  <form.Field name="email">
+                    {(field) => {
+                      const isInvalid =
+                        field.state.meta.isTouched && !field.state.meta.isValid;
+                      return (
+                        <Field data-invalid={isInvalid}>
+                          <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                          <Input
+                            aria-invalid={isInvalid}
+                            autoComplete="email"
+                            id={field.name}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            placeholder="you@example.com"
+                            required
+                            type="email"
+                            value={field.state.value}
+                          />
+                          {isInvalid && (
+                            <FieldError errors={field.state.meta.errors} />
+                          )}
+                        </Field>
+                      );
+                    }}
+                  </form.Field>
+                  <form.Field name="password">
+                    {(field) => {
+                      const isInvalid =
+                        field.state.meta.isTouched && !field.state.meta.isValid;
+                      return (
+                        <Field data-invalid={isInvalid}>
+                          <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                          <Input
+                            aria-invalid={isInvalid}
+                            autoComplete="new-password"
+                            id={field.name}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            required
+                            type="password"
+                            value={field.state.value}
+                          />
+                          {isInvalid && (
+                            <FieldError errors={field.state.meta.errors} />
+                          )}
+                        </Field>
+                      );
+                    }}
+                  </form.Field>
+                  <form.Field name="confirmPassword">
+                    {(field) => {
+                      const isInvalid =
+                        field.state.meta.isTouched && !field.state.meta.isValid;
 
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>
-                      Confirm password
-                    </FieldLabel>
-                    <Input
-                      aria-invalid={isInvalid}
-                      autoComplete="confirm-password"
-                      id={field.name}
-                      name={field.name}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      required
-                      type="password"
-                      value={field.state.value}
-                    />
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </Field>
-                );
-              }}
-            </form.Field>
-          </FieldGroup>
+                      return (
+                        <Field data-invalid={isInvalid}>
+                          <FieldLabel htmlFor={field.name}>
+                            Confirm password
+                          </FieldLabel>
+                          <Input
+                            aria-invalid={isInvalid}
+                            autoComplete="confirm-password"
+                            id={field.name}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            required
+                            type="password"
+                            value={field.state.value}
+                          />
+                          {isInvalid && (
+                            <FieldError errors={field.state.meta.errors} />
+                          )}
+                        </Field>
+                      );
+                    }}
+                  </form.Field>
+                </FieldGroup>
+              </FieldSet>
+            )}
+          </form.Subscribe>
         </form>
       </CardContent>
       <CardFooter>
         <Field>
-          <Button form="sign-up-form" type="submit">
-            Create Account
-          </Button>
+          <form.Subscribe
+            selector={(state) => [state.canSubmit, state.isSubmitting]}
+          >
+            {([canSubmit, isSubmitting]) => (
+              <Button
+                disabled={!canSubmit || isSubmitting}
+                form="sign-up-form"
+                type="submit"
+              >
+                {isSubmitting && <Spinner data-icon="inline-start" />}
+                {isSubmitting ? "Creating account..." : "Create Account"}
+              </Button>
+            )}
+          </form.Subscribe>
           <FieldDescription className="px-6 text-center">
             Already have an account? <Link to="/sign-in">Sign in</Link>
           </FieldDescription>
