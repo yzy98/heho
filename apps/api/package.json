@@ -17,6 +17,7 @@
     "@heho/auth": "workspace:*",
     "@heho/db": "workspace:*",
     "@hono/node-server": "^2.0.5",
+    "@hono/zod-validator": "^0.8.0",
     "dotenv": "catalog:",
     "hono": "catalog:",
     "zod": "catalog:"

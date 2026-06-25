@@ -6,15 +6,33 @@ settings:
 
 catalogs:
   default:
+    '@types/node':
+      specifier: ^24.13.2
+      version: 24.13.2
     '@types/react':
       specifier: ^19.2.17
       version: 19.2.17
     '@types/react-dom':
       specifier: ^19.2.3
       version: 19.2.3
+    dotenv:
+      specifier: ^17.4.2
+      version: 17.4.2
+    hono:
+      specifier: ^4.12.26
+      version: 4.12.26
     lucide-react:
       specifier: ^1.20.0
       version: 1.20.0
+    react:
+      specifier: ^19.2.7
+      version: 19.2.7
+    react-dom:
+      specifier: ^19.2.7
+      version: 19.2.7
+    zod:
+      specifier: ^4.4.3
+      version: 4.4.3
 
 importers:
 
@@ -50,6 +68,9 @@ importers:
       '@hono/node-server':
         specifier: ^2.0.5
         version: 2.0.5(hono@4.12.26)
+      '@hono/zod-validator':
+        specifier: ^0.8.0
+        version: 0.8.0(hono@4.12.26)(zod@4.4.3)
       dotenv:
         specifier: 'catalog:'
         version: 17.4.2
@@ -1180,6 +1201,12 @@ packages:
     engines: {node: '>=20'}
     peerDependencies:
       hono: ^4
+
+  '@hono/zod-validator@0.8.0':
+    resolution: {integrity: sha512-5uS4S1/LKtZQYvD4BtpPUFkOv8d1wNxHHrChm26buMiEYc1FrHWvDUaKVBwkiVtvSExHSpLGDvcnpI2Copyj9w==}
+    peerDependencies:
+      hono: '>=4.10.0'
+      zod: ^3.25.0 || ^4.0.0
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -4377,6 +4404,11 @@ snapshots:
   '@hono/node-server@2.0.5(hono@4.12.26)':
     dependencies:
       hono: 4.12.26
+
+  '@hono/zod-validator@0.8.0(hono@4.12.26)(zod@4.4.3)':
+    dependencies:
+      hono: 4.12.26
+      zod: 4.4.3
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:

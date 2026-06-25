@@ -1,7 +1,7 @@
 import { authSchema, type DbClient } from "@heho/db";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { organization } from "better-auth/plugins";
+import { organization } from "better-auth/plugins/organization";
 import { organizationRoles } from "./access-control";
 
 export interface CreateAuthServerOptions {
@@ -37,6 +37,7 @@ export const createAuthServer = ({
         teams: {
           enabled: false,
         },
+        allowUserToCreateOrganization: false,
       }),
     ],
   });

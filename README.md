@@ -565,29 +565,44 @@ not deferred hardening tasks.
 - [x] Add [organization-related schemas](https://better-auth.com/docs/plugins/organization#schema).
 - [x] Draw ERD and implement `llmProvider` and `chatbot` schemas.
 
-### Day 3: Auth and Organization Bootstrap
+### Day 3: Auth and Organization Onboarding
 
 - [x] Add the Hono API and Vite + React dashboard app foundations.
 - [x] Configure TanStack Router, TanStack Query, and the local `/api` proxy.
 - [x] Configure Better Auth on the API with the existing Drizzle schemas.
 - [x] Add the Better Auth route handler and dashboard auth client.
 - [x] Add a minimal email/password sign-up and sign-in page.
-- [ ] Add an idempotent organization bootstrap using the Better Auth
-      organization plugin:
-  - [ ] The first signed-in user receives one default organization.
-  - [ ] The user becomes the organization `owner`.
-  - [ ] Repeated or concurrent bootstrap requests do not create duplicates.
+- [ ] Add explicit Organization onboarding after sign-up/sign-in:
+  - [x] `GET /organizations/current` is read-only and never creates data.
+  - [x] A signed-in user without an Organization is redirected to an
+        Organization onboarding page.
+  - [x] The onboarding form collects Organization `name` and `slug`.
+  - [ ] `POST /organizations` creates the initial Organization through the
+        Better Auth organization plugin.
+  - [ ] The creator becomes the Organization `owner`.
+  - [ ] Repeated or concurrent creation requests do not create duplicates.
 - [ ] Restrict MVP organization membership roles to:
   - [ ] `owner`
   - [ ] `member`
 - [ ] Add authenticated `/organizations/current`.
 - [ ] Derive the current organization from the authenticated Better Auth
       membership; never trust a client-provided organization ID.
-- [ ] Show the current organization in the dashboard shell.
+- [ ] Add authenticated `POST /organizations`:
+  - [ ] Validate `name` and `slug`.
+  - [ ] Enforce the MVP single-Organization initialization rule.
+  - [ ] Use server-side `auth.api.createOrganization` with `userId`; do not
+        insert `organization` or `member` rows manually.
+- [ ] Show the current organization in the dashboard shell after onboarding.
 - [ ] Acceptance:
-  - [ ] A new user can sign up, sign in, and see one default organization.
-  - [ ] A returning user does not receive another default organization.
+  - [ ] A new user can sign up, sign in, fill Organization onboarding, and see
+        the created Organization.
+  - [ ] A returning user with membership sees their current Organization.
+  - [ ] A signed-in user without membership is redirected to onboarding or a
+        membership-required state.
   - [ ] An unauthenticated request to `/organizations/current` is rejected.
+  - [ ] `GET /organizations/current` does not create an Organization.
+  - [ ] Duplicate or concurrent `POST /organizations` calls do not create
+        duplicate Organizations.
 - [ ] Run:
   - [ ] `pnpm check`
   - [ ] `pnpm typecheck`

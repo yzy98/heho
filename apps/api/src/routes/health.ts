@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 
-const app = new Hono().get("/", (c) =>
+const healthRoute = new Hono().get("/", (c) =>
   c.json({
     ok: true,
     service: "server",
   })
 );
 
-export default app;
+export default healthRoute;
