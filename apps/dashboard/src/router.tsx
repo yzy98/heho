@@ -7,6 +7,7 @@ export const router = createRouter({
   defaultPreload: "intent",
   context: {
     queryClient,
+    auth: undefined!,
   },
 });
 

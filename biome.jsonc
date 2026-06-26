@@ -11,6 +11,9 @@
         "noBarrelFile": "off",
         "noNamespaceImport": "off",
         "useTopLevelRegex": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off"
       }
     }
   },

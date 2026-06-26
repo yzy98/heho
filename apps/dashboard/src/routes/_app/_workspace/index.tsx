@@ -2,7 +2,11 @@ import { Button } from "@heho/ui/components/button";
 import { toast } from "@heho/ui/components/sonner";
 import { Spinner } from "@heho/ui/components/spinner";
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  useNavigate,
+  useRouter,
+} from "@tanstack/react-router";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 
@@ -13,9 +17,10 @@ export const Route = createFileRoute("/_app/_workspace/")({
 function HomePage() {
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const { session, organization } = Route.useRouteContext();
-  const navigate = useNavigate();
+  const { session, organization, auth } = Route.useRouteContext();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleLogOut = async () => {
     setIsSigningOut(true);
@@ -23,8 +28,14 @@ function HomePage() {
     try {
       await authClient.signOut({
         fetchOptions: {
-          onSuccess: () => {
+          onSuccess: async () => {
+            // Clear query cache(e.g. organizationQuery)
             queryClient.clear();
+            // Refetch auth state
+            await auth.refetch();
+            // Invalidate the beforeLoad data, as it is out of date
+            await router.invalidate();
+            // Redirect to sign-in
             navigate({ to: "/sign-in" });
           },
           onError: () => {
