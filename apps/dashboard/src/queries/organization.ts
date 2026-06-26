@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { apiClient } from "./api-client";
+import { apiClient } from "@/lib/api-client";
 
 function isApiErrorWithCode(
   data: unknown,
@@ -13,7 +13,7 @@ function isApiErrorWithCode(
   );
 }
 
-export async function getCurrentOrganizationResult() {
+async function getCurrentOrganizationResult() {
   const response = await apiClient.organizations.current.$get();
 
   if (response.ok) {
@@ -53,7 +53,7 @@ export async function getCurrentOrganizationResult() {
   };
 }
 
-export const currentOrganizationResultQueryOptions = () =>
+export const organizationQueryOptions = () =>
   queryOptions({
     queryKey: ["current-organization"],
     queryFn: getCurrentOrganizationResult,

@@ -19,9 +19,11 @@ import { Input } from "@heho/ui/components/input";
 import { toast } from "@heho/ui/components/sonner";
 import { Spinner } from "@heho/ui/components/spinner";
 import { useForm } from "@tanstack/react-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import z from "zod";
 import { authClient } from "@/lib/auth-client";
+import { sessionQueryOptions } from "@/queries/session";
 
 const signInSchema = z.object({
   email: z.email("Enter a valid email"),
@@ -40,6 +42,7 @@ const DEFAULT_SIGN_IN_VALUE: SignInValues = {
 
 export const SignInForm = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const form = useForm({
     defaultValues: DEFAULT_SIGN_IN_VALUE,
@@ -51,7 +54,14 @@ export const SignInForm = () => {
       const { ...credentials } = value;
 
       await authClient.signIn.email(credentials, {
-        onSuccess: () => {
+        onSuccess: async () => {
+          // Invalidate the session query
+          await queryClient.invalidateQueries({
+            queryKey: sessionQueryOptions().queryKey,
+          });
+          // Fetch the latest session
+          await queryClient.fetchQuery(sessionQueryOptions());
+          // Redirect to the dashboard home page
           navigate({ to: "/" });
         },
         onError: (ctx) => {

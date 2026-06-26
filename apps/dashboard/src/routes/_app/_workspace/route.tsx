@@ -1,11 +1,11 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { currentOrganizationResultQueryOptions } from "@/lib/current-organization";
+import { organizationQueryOptions } from "@/queries/organization";
 
 export const Route = createFileRoute("/_app/_workspace")({
   beforeLoad: async ({ context }) => {
     // Check current organization
     const organizationResult = await context.queryClient.ensureQueryData(
-      currentOrganizationResultQueryOptions()
+      organizationQueryOptions()
     );
 
     // No organization for now, redirect to onboarding page

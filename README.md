@@ -572,41 +572,41 @@ not deferred hardening tasks.
 - [x] Configure Better Auth on the API with the existing Drizzle schemas.
 - [x] Add the Better Auth route handler and dashboard auth client.
 - [x] Add a minimal email/password sign-up and sign-in page.
-- [ ] Add explicit Organization onboarding after sign-up/sign-in:
+- [x] Add explicit Organization onboarding after sign-up/sign-in:
   - [x] `GET /organizations/current` is read-only and never creates data.
   - [x] A signed-in user without an Organization is redirected to an
         Organization onboarding page.
   - [x] The onboarding form collects Organization `name` and `slug`.
-  - [ ] `POST /organizations` creates the initial Organization through the
+  - [x] `POST /organizations` creates the initial Organization through the
         Better Auth organization plugin.
-  - [ ] The creator becomes the Organization `owner`.
-  - [ ] Repeated or concurrent creation requests do not create duplicates.
-- [ ] Restrict MVP organization membership roles to:
-  - [ ] `owner`
-  - [ ] `member`
-- [ ] Add authenticated `/organizations/current`.
-- [ ] Derive the current organization from the authenticated Better Auth
+  - [x] The creator becomes the Organization `owner`.
+  - [x] Repeated or concurrent creation requests do not create duplicates.
+- [x] Restrict MVP organization membership roles to:
+  - [x] `owner`
+  - [x] `member`
+- [x] Add authenticated `/organizations/current`.
+- [x] Derive the current organization from the authenticated Better Auth
       membership; never trust a client-provided organization ID.
-- [ ] Add authenticated `POST /organizations`:
-  - [ ] Validate `name` and `slug`.
-  - [ ] Enforce the MVP single-Organization initialization rule.
-  - [ ] Use server-side `auth.api.createOrganization` with `userId`; do not
+- [x] Add authenticated `POST /organizations`:
+  - [x] Validate `name` and `slug`.
+  - [x] Enforce the MVP single-Organization initialization rule.
+  - [x] Use server-side `auth.api.createOrganization` with `userId`; do not
         insert `organization` or `member` rows manually.
-- [ ] Show the current organization in the dashboard shell after onboarding.
-- [ ] Acceptance:
-  - [ ] A new user can sign up, sign in, fill Organization onboarding, and see
+- [x] Show the current organization in the dashboard shell after onboarding.
+- [x] Acceptance:
+  - [x] A new user can sign up, sign in, fill Organization onboarding, and see
         the created Organization.
-  - [ ] A returning user with membership sees their current Organization.
-  - [ ] A signed-in user without membership is redirected to onboarding or a
+  - [x] A returning user with membership sees their current Organization.
+  - [x] A signed-in user without membership is redirected to onboarding or a
         membership-required state.
-  - [ ] An unauthenticated request to `/organizations/current` is rejected.
-  - [ ] `GET /organizations/current` does not create an Organization.
-  - [ ] Duplicate or concurrent `POST /organizations` calls do not create
+  - [x] An unauthenticated request to `/organizations/current` is rejected.
+  - [x] `GET /organizations/current` does not create an Organization.
+  - [x] Duplicate or concurrent `POST /organizations` calls do not create
         duplicate Organizations.
-- [ ] Run:
-  - [ ] `pnpm check`
-  - [ ] `pnpm typecheck`
-  - [ ] Relevant auth and organization tests.
+- [x] Run:
+  - [x] `pnpm check`
+  - [x] `pnpm typecheck`
+  - [x] Relevant auth and organization tests.
 
 ### Day 4: Chatbot and Provider Setup
 

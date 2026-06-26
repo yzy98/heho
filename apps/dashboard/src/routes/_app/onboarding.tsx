@@ -4,14 +4,15 @@ import { Spinner } from "@heho/ui/components/spinner";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { CreateOrganizationForm } from "@/components/create-organization-form";
 import { authClient } from "@/lib/auth-client";
-import { currentOrganizationResultQueryOptions } from "@/lib/current-organization";
+import { organizationQueryOptions } from "@/queries/organization";
 
 export const Route = createFileRoute("/_app/onboarding")({
   beforeLoad: async ({ context }) => {
     // Check current organization
     const organizationResult = await context.queryClient.ensureQueryData(
-      currentOrganizationResultQueryOptions()
+      organizationQueryOptions()
     );
 
     // Have organization, redirect back to dashboard home page
@@ -60,9 +61,9 @@ function OnboardingPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {organizationStatus === "membership_required" ? (
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           <h2>Need invitation</h2>
           <p>
             You are not the member of current organization. Please contract the
@@ -70,7 +71,9 @@ function OnboardingPage() {
           </p>
         </div>
       ) : (
-        <div>CREATE ORGANIZATION FORM</div>
+        <div className="max-w-sm">
+          <CreateOrganizationForm />
+        </div>
       )}
 
       <div>
