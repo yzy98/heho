@@ -1,4 +1,10 @@
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@heho/ui/components/sidebar";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { DashboardSidebar } from "@/components/dashboard-sidebar";
 
 export const Route = createFileRoute("/_app")({
   beforeLoad: ({ context }) => {
@@ -17,8 +23,14 @@ export const Route = createFileRoute("/_app")({
 
 function AppLayout() {
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-10">
-      <Outlet />
-    </main>
+    <SidebarProvider>
+      <DashboardSidebar />
+      <SidebarInset>
+        <main>
+          <SidebarTrigger />
+          <Outlet />
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
