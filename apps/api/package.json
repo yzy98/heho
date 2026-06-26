@@ -1,0 +1,30 @@
+{
+  "name": "@heho/api",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./app": "./src/app.ts"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup src/index.ts --format esm --clean",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@heho/auth": "workspace:*",
+    "@heho/db": "workspace:*",
+    "@hono/node-server": "^2.0.5",
+    "@hono/zod-validator": "^0.8.0",
+    "dotenv": "catalog:",
+    "hono": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "tsup": "^8.5.1",
+    "tsx": "^4.7.1"
+  }
+}
