@@ -23,14 +23,14 @@ export const useSignOut = () => {
       await authClient.signOut({
         fetchOptions: {
           onSuccess: async () => {
-            // Clear query cache(e.g. organizationQuery)
-            queryClient.clear();
-            // Refetch auth state
+            // Refetch auth state, clear client side session
             await auth.refetch();
-            // Invalidate the beforeLoad data, as it is out of date
+            // _app.beforeLoad will find out current client side session null
             await router.invalidate();
             // Redirect to sign-in
-            navigate({ to: "/sign-in" });
+            await navigate({ to: "/sign-in", replace: true });
+            // Clear query cache(e.g. organizationQuery)
+            queryClient.clear();
           },
           onError: () => {
             toast.error("Unable to sign out. Please try again.");
