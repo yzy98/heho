@@ -3,6 +3,9 @@ import { CreateOrganizationForm } from "@/components/create-organization-form";
 import { organizationQueryOptions } from "@/queries/organization";
 
 export const Route = createFileRoute("/_app/onboarding")({
+  staticData: {
+    breadcrumb: "Onboarding",
+  },
   beforeLoad: async ({ context }) => {
     // Check current organization
     const organizationResult = await context.queryClient.ensureQueryData(
@@ -30,21 +33,21 @@ export const Route = createFileRoute("/_app/onboarding")({
 function OnboardingPage() {
   const { organizationStatus } = Route.useRouteContext();
 
+  if (organizationStatus === "membership_required") {
+    return (
+      <div className="flex flex-col gap-6">
+        <h2>Need invitation</h2>
+        <p>
+          You are not the member of current organization. Please contract the
+          owner for invitation.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-6">
-      {organizationStatus === "membership_required" ? (
-        <div className="flex flex-col gap-6">
-          <h2>Need invitation</h2>
-          <p>
-            You are not the member of current organization. Please contract the
-            owner for invitation.
-          </p>
-        </div>
-      ) : (
-        <div className="max-w-sm">
-          <CreateOrganizationForm />
-        </div>
-      )}
+    <div className="max-w-lg">
+      <CreateOrganizationForm />
     </div>
   );
 }
