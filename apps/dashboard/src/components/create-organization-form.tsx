@@ -129,7 +129,7 @@ export const CreateOrganizationForm = () => {
         status: "ok",
         organization,
       });
-      navigate({ to: "/" });
+      navigate({ to: "/", replace: true });
     },
     onError: async (error) => {
       if (
@@ -141,7 +141,7 @@ export const CreateOrganizationForm = () => {
           status: "ok",
           organization: error.data.organization,
         });
-        navigate({ to: "/" });
+        navigate({ to: "/", replace: true });
         return;
       }
 

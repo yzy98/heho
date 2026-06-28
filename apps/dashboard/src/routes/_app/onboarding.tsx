@@ -1,19 +1,11 @@
-import { Button } from "@heho/ui/components/button";
-import { toast } from "@heho/ui/components/sonner";
-import { Spinner } from "@heho/ui/components/spinner";
-import { useQueryClient } from "@tanstack/react-query";
-import {
-  createFileRoute,
-  redirect,
-  useNavigate,
-  useRouter,
-} from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { CreateOrganizationForm } from "@/components/create-organization-form";
-import { authClient } from "@/lib/auth-client";
 import { organizationQueryOptions } from "@/queries/organization";
 
 export const Route = createFileRoute("/_app/onboarding")({
+  staticData: {
+    breadcrumb: "Onboarding",
+  },
   beforeLoad: async ({ context }) => {
     // Check current organization
     const organizationResult = await context.queryClient.ensureQueryData(
@@ -39,64 +31,23 @@ export const Route = createFileRoute("/_app/onboarding")({
 });
 
 function OnboardingPage() {
-  const [isSigningOut, setIsSigningOut] = useState(false);
+  const { organizationStatus } = Route.useRouteContext();
 
-  const { session, organizationStatus, auth } = Route.useRouteContext();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  const router = useRouter();
-
-  const handleLogOut = async () => {
-    setIsSigningOut(true);
-
-    try {
-      await authClient.signOut({
-        fetchOptions: {
-          onSuccess: async () => {
-            // Clear query cache(e.g. organizationQuery)
-            queryClient.clear();
-            // Refetch auth state
-            await auth.refetch();
-            // Invalidate the beforeLoad data, as it is out of date
-            await router.invalidate();
-            // Redirect to sign-in
-            navigate({ to: "/sign-in" });
-          },
-          onError: () => {
-            toast.error("Unable to sign out. Please try again.");
-          },
-        },
-      });
-    } finally {
-      setIsSigningOut(false);
-    }
-  };
+  if (organizationStatus === "membership_required") {
+    return (
+      <div className="flex flex-col gap-6">
+        <h2>Need invitation</h2>
+        <p>
+          You are not the member of current organization. Please contract the
+          owner for invitation.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-6">
-      {organizationStatus === "membership_required" ? (
-        <div className="flex flex-col gap-6">
-          <h2>Need invitation</h2>
-          <p>
-            You are not the member of current organization. Please contract the
-            owner for invitation.
-          </p>
-        </div>
-      ) : (
-        <div className="max-w-sm">
-          <CreateOrganizationForm />
-        </div>
-      )}
-
-      <div>
-        <p>{session.user.name}</p>
-        <p>{session.user.email}</p>
-      </div>
-
-      <Button disabled={isSigningOut} onClick={handleLogOut} type="button">
-        {isSigningOut && <Spinner data-icon="inline-start" />}
-        {isSigningOut ? "Signing out..." : "Log out"}
-      </Button>
+    <div className="max-w-lg">
+      <CreateOrganizationForm />
     </div>
   );
 }

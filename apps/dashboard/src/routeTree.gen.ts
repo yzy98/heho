@@ -16,6 +16,8 @@ import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
 import { Route as AppOnboardingRouteImport } from './routes/_app/onboarding'
 import { Route as AppWorkspaceRouteRouteImport } from './routes/_app/_workspace/route'
 import { Route as AppWorkspaceIndexRouteImport } from './routes/_app/_workspace/index'
+import { Route as AppWorkspaceProvidersRouteImport } from './routes/_app/_workspace/providers'
+import { Route as AppWorkspaceChatbotsRouteImport } from './routes/_app/_workspace/chatbots'
 
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
@@ -49,18 +51,32 @@ const AppWorkspaceIndexRoute = AppWorkspaceIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppWorkspaceRouteRoute,
 } as any)
+const AppWorkspaceProvidersRoute = AppWorkspaceProvidersRouteImport.update({
+  id: '/providers',
+  path: '/providers',
+  getParentRoute: () => AppWorkspaceRouteRoute,
+} as any)
+const AppWorkspaceChatbotsRoute = AppWorkspaceChatbotsRouteImport.update({
+  id: '/chatbots',
+  path: '/chatbots',
+  getParentRoute: () => AppWorkspaceRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppWorkspaceIndexRoute
   '/onboarding': typeof AppOnboardingRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
+  '/chatbots': typeof AppWorkspaceChatbotsRoute
+  '/providers': typeof AppWorkspaceProvidersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AppWorkspaceIndexRoute
   '/onboarding': typeof AppOnboardingRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
+  '/chatbots': typeof AppWorkspaceChatbotsRoute
+  '/providers': typeof AppWorkspaceProvidersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,13 +86,21 @@ export interface FileRoutesById {
   '/_app/onboarding': typeof AppOnboardingRoute
   '/_auth/sign-in': typeof AuthSignInRoute
   '/_auth/sign-up': typeof AuthSignUpRoute
+  '/_app/_workspace/chatbots': typeof AppWorkspaceChatbotsRoute
+  '/_app/_workspace/providers': typeof AppWorkspaceProvidersRoute
   '/_app/_workspace/': typeof AppWorkspaceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/onboarding' | '/sign-in' | '/sign-up'
+  fullPaths:
+    | '/'
+    | '/onboarding'
+    | '/sign-in'
+    | '/sign-up'
+    | '/chatbots'
+    | '/providers'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/onboarding' | '/sign-in' | '/sign-up'
+  to: '/' | '/onboarding' | '/sign-in' | '/sign-up' | '/chatbots' | '/providers'
   id:
     | '__root__'
     | '/_app'
@@ -85,6 +109,8 @@ export interface FileRouteTypes {
     | '/_app/onboarding'
     | '/_auth/sign-in'
     | '/_auth/sign-up'
+    | '/_app/_workspace/chatbots'
+    | '/_app/_workspace/providers'
     | '/_app/_workspace/'
   fileRoutesById: FileRoutesById
 }
@@ -144,14 +170,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWorkspaceIndexRouteImport
       parentRoute: typeof AppWorkspaceRouteRoute
     }
+    '/_app/_workspace/providers': {
+      id: '/_app/_workspace/providers'
+      path: '/providers'
+      fullPath: '/providers'
+      preLoaderRoute: typeof AppWorkspaceProvidersRouteImport
+      parentRoute: typeof AppWorkspaceRouteRoute
+    }
+    '/_app/_workspace/chatbots': {
+      id: '/_app/_workspace/chatbots'
+      path: '/chatbots'
+      fullPath: '/chatbots'
+      preLoaderRoute: typeof AppWorkspaceChatbotsRouteImport
+      parentRoute: typeof AppWorkspaceRouteRoute
+    }
   }
 }
 
 interface AppWorkspaceRouteRouteChildren {
+  AppWorkspaceChatbotsRoute: typeof AppWorkspaceChatbotsRoute
+  AppWorkspaceProvidersRoute: typeof AppWorkspaceProvidersRoute
   AppWorkspaceIndexRoute: typeof AppWorkspaceIndexRoute
 }
 
 const AppWorkspaceRouteRouteChildren: AppWorkspaceRouteRouteChildren = {
+  AppWorkspaceChatbotsRoute: AppWorkspaceChatbotsRoute,
+  AppWorkspaceProvidersRoute: AppWorkspaceProvidersRoute,
   AppWorkspaceIndexRoute: AppWorkspaceIndexRoute,
 }
 

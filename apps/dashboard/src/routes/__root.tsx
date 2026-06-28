@@ -18,7 +18,9 @@ function RootLayout() {
     <div className="min-h-screen bg-background text-foreground">
       <Toaster />
       <Outlet />
-      {import.meta.env.DEV ? <TanStackRouterDevtools /> : null}
+      {import.meta.env.DEV ? (
+        <TanStackRouterDevtools position="bottom-right" />
+      ) : null}
     </div>
   );
 }

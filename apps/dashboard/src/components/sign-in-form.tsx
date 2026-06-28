@@ -59,12 +59,13 @@ export const SignInForm = () => {
 
       await authClient.signIn.email(credentials, {
         onSuccess: async () => {
-          // Refetch auth state
+          // Refetch auth state, update client side session
           await auth.refetch();
           // Invalidate the beforeLoad data, as it is out of date
+          // _auth.beforeLoad will find out current client side session exists
           await router.invalidate();
           // Redirect to the dashboard home page
-          navigate({ to: "/" });
+          navigate({ to: "/", replace: true });
         },
         onError: (ctx) => {
           if (ctx.error.status === 401) {
