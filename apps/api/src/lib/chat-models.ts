@@ -25,13 +25,16 @@ const assertUnsupportedProvider = (provider: never): never => {
 
 const resolveDeepSeekChatModel = ({
   apiKey,
+  baseUrl,
   modelId,
 }: {
   apiKey: string;
+  baseUrl: string | null | undefined;
   modelId: SupportedChatModelIdFor<"deepseek">;
 }): ResolvedChatModelFor<"deepseek"> => {
   const deepseek = createDeepSeek({
     apiKey,
+    ...(baseUrl ? { baseURL: baseUrl } : {}),
   });
 
   return {
@@ -43,13 +46,16 @@ const resolveDeepSeekChatModel = ({
 
 const resolveOpenAIChatModel = ({
   apiKey,
+  baseUrl,
   modelId,
 }: {
   apiKey: string;
+  baseUrl: string | null | undefined;
   modelId: SupportedChatModelIdFor<"openai">;
 }): ResolvedChatModelFor<"openai"> => {
   const openai = createOpenAI({
     apiKey,
+    ...(baseUrl ? { baseURL: baseUrl } : {}),
   });
 
   return {
@@ -61,13 +67,16 @@ const resolveOpenAIChatModel = ({
 
 const resolveAnthropicChatModel = ({
   apiKey,
+  baseUrl,
   modelId,
 }: {
   apiKey: string;
+  baseUrl: string | null | undefined;
   modelId: SupportedChatModelIdFor<"anthropic">;
 }): ResolvedChatModelFor<"anthropic"> => {
   const anthropic = createAnthropic({
     apiKey,
+    ...(baseUrl ? { baseURL: baseUrl } : {}),
   });
 
   return {
@@ -79,9 +88,11 @@ const resolveAnthropicChatModel = ({
 
 const resolveSupportedChatModel = ({
   apiKey,
+  baseUrl,
   model,
 }: {
   apiKey: string;
+  baseUrl: string | null | undefined;
   model: SupportedChatModel;
 }): ResolvedChatModel => {
   const { id, provider } = model;
@@ -89,16 +100,19 @@ const resolveSupportedChatModel = ({
     case "deepseek":
       return resolveDeepSeekChatModel({
         apiKey,
+        baseUrl,
         modelId: id,
       });
     case "openai":
       return resolveOpenAIChatModel({
         apiKey,
+        baseUrl,
         modelId: id,
       });
     case "anthropic":
       return resolveAnthropicChatModel({
         apiKey,
+        baseUrl,
         modelId: id,
       });
     default:
@@ -108,10 +122,12 @@ const resolveSupportedChatModel = ({
 
 export const resolveChatModel = ({
   apiKey,
+  baseUrl,
   modelId,
   provider,
 }: {
   apiKey: string;
+  baseUrl?: string | null;
   modelId: string;
   provider: string;
 }): ResolvedChatModel => {
@@ -125,6 +141,7 @@ export const resolveChatModel = ({
 
   return resolveSupportedChatModel({
     apiKey,
+    baseUrl,
     model,
   });
 };

@@ -26,13 +26,16 @@ const assertUnsupportedProvider = (provider: never): never => {
 
 const resolveOpenAIEmbeddingModel = ({
   apiKey,
+  baseUrl,
   modelId,
 }: {
   apiKey: string;
+  baseUrl: string | null | undefined;
   modelId: SupportedEmbeddingModelIdFor<"openai">;
 }): ResolvedEmbeddingModelFor<"openai"> => {
   const openai = createOpenAI({
     apiKey,
+    ...(baseUrl ? { baseURL: baseUrl } : {}),
   });
 
   return {
@@ -44,13 +47,16 @@ const resolveOpenAIEmbeddingModel = ({
 
 const resolveGoogleEmbeddingModel = ({
   apiKey,
+  baseUrl,
   modelId,
 }: {
   apiKey: string;
+  baseUrl: string | null | undefined;
   modelId: SupportedEmbeddingModelIdFor<"google">;
 }): ResolvedEmbeddingModelFor<"google"> => {
   const google = createGoogle({
     apiKey,
+    ...(baseUrl ? { baseURL: baseUrl } : {}),
   });
 
   return {
@@ -62,9 +68,11 @@ const resolveGoogleEmbeddingModel = ({
 
 const resolveSupportedEmbeddingModel = ({
   apiKey,
+  baseUrl,
   model,
 }: {
   apiKey: string;
+  baseUrl: string | null | undefined;
   model: SupportedEmbeddingModel;
 }): ResolvedEmbeddingModel => {
   const { id, provider } = model;
@@ -72,11 +80,13 @@ const resolveSupportedEmbeddingModel = ({
     case "google":
       return resolveGoogleEmbeddingModel({
         apiKey,
+        baseUrl,
         modelId: id,
       });
     case "openai":
       return resolveOpenAIEmbeddingModel({
         apiKey,
+        baseUrl,
         modelId: id,
       });
     default:
@@ -86,10 +96,12 @@ const resolveSupportedEmbeddingModel = ({
 
 export const resolveEmbeddingModel = ({
   apiKey,
+  baseUrl,
   modelId,
   provider,
 }: {
   apiKey: string;
+  baseUrl?: string | null;
   modelId: string;
   provider: string;
 }): ResolvedEmbeddingModel => {
@@ -103,6 +115,7 @@ export const resolveEmbeddingModel = ({
 
   return resolveSupportedEmbeddingModel({
     apiKey,
+    baseUrl,
     model,
   });
 };
