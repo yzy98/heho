@@ -11,7 +11,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsup src/index.ts --format esm --clean",
     "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.1",
@@ -26,11 +27,13 @@
     "ai": "^7.0.4",
     "dotenv": "catalog:",
     "hono": "catalog:",
+    "jose": "^6.2.3",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
     "tsup": "^8.5.1",
-    "tsx": "^4.7.1"
+    "tsx": "^4.7.1",
+    "vitest": "^4.1.9"
   }
 }
