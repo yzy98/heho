@@ -1,5 +1,17 @@
-import { index, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  index,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
 import { organization } from "./auth";
+
+export const llmProviderCapability = pgEnum("llm_provider_capability", [
+  "chat",
+  "embedding",
+]);
 
 export const llmProvider = pgTable(
   "llm_provider",
@@ -9,15 +21,20 @@ export const llmProvider = pgTable(
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
     name: text().notNull(),
-    baseUrl: text().notNull(),
+    provider: text().notNull(),
+    capability: llmProviderCapability().notNull(),
+    baseUrl: text(),
     encryptedApiKey: text().notNull(),
-    chatModel: text().notNull(),
-    embeddingModel: text().notNull(),
+    model: text().notNull(),
     createdAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
     updatedAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
   },
   (table) => [
     index("llm_provider_organization_id_idx").on(table.organizationId),
+    index("llm_provider_organization_capability_idx").on(
+      table.organizationId,
+      table.capability
+    ),
   ]
 );
 
