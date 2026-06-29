@@ -4,19 +4,19 @@ import { eq, sql } from "@heho/db/helper";
 import { member, organization } from "@heho/db/schema";
 import type { CreateOrganizationInput } from "../schemas/organizations";
 
-export interface CurrentOrganization {
+export type CurrentOrganization = {
   id: string;
   name: string;
   role: string;
   slug: string;
-}
+};
 
-export interface CreateInitialOrganizationOptions {
+export type CreateInitialOrganizationOptions = {
   auth: AuthServer;
   db: DbClient;
   input: CreateOrganizationInput;
   userId: string;
-}
+};
 
 export type CreateInitialOrganizationResult =
   | {

@@ -16,7 +16,11 @@ const auth = createAuthServer({
 });
 
 // Create Hono instance
-const app = createApp({ auth, db: database.db });
+const app = createApp({
+  auth,
+  db: database.db,
+  encryptionKey: env.APP_ENCRYPTION_KEY,
+});
 
 const server = serve(
   {

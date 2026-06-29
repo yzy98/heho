@@ -2,14 +2,16 @@ import type { AuthServer } from "@heho/auth/server";
 import type { DbClient } from "@heho/db";
 import { Hono } from "hono";
 import health from "./routes/health";
+import { createLlmProvidersRoute } from "./routes/llm-providers";
 import { createOrganizationsRoute } from "./routes/organizations";
 
-export interface CreateAppOptions {
+export type CreateAppOptions = {
   auth: AuthServer;
   db: DbClient;
-}
+  encryptionKey: Uint8Array;
+};
 
-export function createApp({ auth, db }: CreateAppOptions) {
+export function createApp({ auth, db, encryptionKey }: CreateAppOptions) {
   return (
     new Hono()
       // Auth route
@@ -20,6 +22,10 @@ export function createApp({ auth, db }: CreateAppOptions) {
 
       // Protected routes
       .route("/organizations", createOrganizationsRoute({ auth, db }))
+      .route(
+        "/llm-providers",
+        createLlmProvidersRoute({ auth, db, encryptionKey })
+      )
   );
 }
 
