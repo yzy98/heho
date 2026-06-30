@@ -608,30 +608,83 @@ not deferred hardening tasks.
   - [x] `pnpm typecheck`
   - [x] Relevant auth and organization tests.
 
-### Day 4: Chatbot and Provider Setup
+### Day 4: LLM Provider Setup
 
-- [ ] Add the required `llm_provider` and `chatbot` migrations and constraints.
-- [ ] Add chatbot CRUD API and dashboard form.
-- [ ] Add OpenAI-compatible provider API and dashboard form.
-- [ ] Encrypt provider API keys with `APP_ENCRYPTION_KEY`.
-- [ ] Store provider config:
-  - [ ] `base_url`
-  - [ ] `api_key`
-  - [ ] `chat_model`
-  - [ ] `embedding_model`
-- [ ] Add a dashboard onboarding checklist showing chatbot and provider setup status.
-- [ ] Enforce organization membership on every chatbot and provider operation.
-- [ ] Prevent a chatbot from referencing a provider from another organization.
+- [x] Define supported chat and embedding model catalogs shared by the API and
+      dashboard.
+- [x] Model one `llm_provider` row as one capability and credential:
+  - [x] `chat`
+  - [x] `embedding`
+- [x] Store the Provider name, implementation, model, optional custom base URL,
+      and encrypted API key.
+- [x] Pass custom base URLs to AI SDK provider factories while preserving each
+      provider's default URL when none is configured.
+- [x] Encrypt Provider API keys with `APP_ENCRYPTION_KEY` using compact JWE,
+      direct encryption, and `A256GCM`.
+- [x] Add authenticated Provider APIs:
+  - [x] `GET /llm-providers`
+  - [x] `POST /llm-providers`
+- [x] Derive `organizationId` from the authenticated user's membership; never
+      accept it from the dashboard.
+- [x] Allow all organization members to list Providers and restrict creation to
+      the organization `owner`.
+- [x] Return safe Provider projections without API keys, encrypted credentials,
+      or organization IDs.
+- [x] Add the dashboard Provider list, empty/loading/error states, and responsive
+      creation dialog.
+- [x] Infer dashboard request and response types from the Hono client and
+      invalidate the organization-scoped Provider query after creation.
+- [x] Acceptance:
+  - [x] An owner can create chat and embedding Provider configurations.
+  - [x] Members can list Providers but cannot create them.
+  - [x] Provider credentials are encrypted at rest and never returned to the
+        dashboard.
+  - [x] Provider reads and writes are scoped to the authenticated user's
+        organization.
+- [x] Run:
+  - [x] `pnpm check`
+  - [x] `pnpm typecheck`
+  - [x] Provider API, encryption, authorization, and tenant-isolation tests.
+
+Chatbot API and dashboard work are intentionally deferred to Day 5.
+
+### Day 5: Chatbot Setup
+
+- [ ] Update the `chatbot` schema for capability-specific Provider references:
+  - [ ] `chat_provider_id`
+  - [ ] `embedding_provider_id`
+- [ ] Remove duplicated chat and embedding model fields from `chatbot`; each
+      selected Provider row already owns its capability, model, and credential.
+- [ ] Preserve Chatbots when a referenced Provider is deleted by setting the
+      corresponding Provider reference to `null`.
+- [ ] Add authenticated Chatbot APIs:
+  - [ ] `GET /chatbots`
+  - [ ] `POST /chatbots`
+- [ ] Derive `organizationId` from the authenticated user's membership; never
+      accept it from the dashboard.
+- [ ] Allow all organization members to list Chatbots and restrict creation to
+      the organization `owner`.
+- [ ] Validate that selected Providers:
+  - [ ] Belong to the current organization.
+  - [ ] Match the required `chat` or `embedding` capability.
+- [ ] Add the dashboard Chatbot list, empty/loading/error states, and responsive
+      creation form.
+- [ ] Limit the first Chatbot slice to create and list; defer update, delete,
+      model execution, RAG, and widget behavior.
 - [ ] Acceptance:
-  - [ ] An owner can save a provider and create a chatbot.
-  - [ ] The raw provider API key is never returned to the dashboard.
-  - [ ] Cross-organization reads and references are rejected.
+  - [ ] An owner can create a Chatbot using chat and embedding Providers from
+        the current organization.
+  - [ ] Members can list Chatbots but cannot create them.
+  - [ ] Cross-organization and capability-mismatched Provider references are
+        rejected.
+  - [ ] Chatbot responses do not expose Provider credentials or organization
+        IDs.
 - [ ] Run:
   - [ ] `pnpm check`
   - [ ] `pnpm typecheck`
-  - [ ] Relevant chatbot, provider, encryption, and tenant-isolation tests.
+  - [ ] Chatbot API, authorization, capability, and tenant-isolation tests.
 
-### Day 5: Embed Keys and Domain Allowlist
+### Day 6: Embed Keys and Domain Allowlist
 
 - [ ] Add the embed key schema and migration.
 - [ ] Generate `pk_*` public embed keys.
@@ -650,7 +703,7 @@ not deferred hardening tasks.
   - [ ] `pnpm typecheck`
   - [ ] Relevant embed key and tenant-isolation tests.
 
-### Day 6: Thin End-to-End Text RAG Slice
+### Day 7: Thin End-to-End Text RAG Slice
 
 - [ ] Add the minimal schemas and migrations for:
   - [ ] `knowledge_source`
@@ -685,7 +738,7 @@ not deferred hardening tasks.
   - [ ] `pnpm typecheck`
   - [ ] RAG tests with deterministic provider and embedding adapters.
 
-### Day 7: Background Ingestion and URL Adapter
+### Day 8: Background Ingestion and URL Adapter
 
 - [ ] Add BullMQ ingestion queue and worker processing.
 - [ ] Move text ingestion behind the queue without changing its observable result.
@@ -693,7 +746,7 @@ not deferred hardening tasks.
   - [ ] Fetch URL content server-side.
   - [ ] Strip scripts, styles, and obvious navigation noise.
   - [ ] Extract title and readable body text.
-  - [ ] Reuse the Day 6 ingestion pipeline.
+  - [ ] Reuse the Day 7 ingestion pipeline.
 - [ ] Show queued, processing, ready, and failed states in the dashboard.
 - [ ] Make ingestion jobs idempotent and safe to retry.
 - [ ] Acceptance:
@@ -705,7 +758,7 @@ not deferred hardening tasks.
   - [ ] `pnpm typecheck`
   - [ ] Relevant queue, retry, text, and URL ingestion tests.
 
-### Day 8: Public Chat API with Trace
+### Day 9: Public Chat API with Trace
 
 - [ ] Implement:
   - [ ] `GET /widget/config?key=pk_xxx`
@@ -715,7 +768,7 @@ not deferred hardening tasks.
 - [ ] Validate the request origin against the domain allowlist.
 - [ ] Add basic rate limiting for public widget requests.
 - [ ] Create or reuse chat sessions.
-- [ ] Reuse the Day 6 RAG module for every visitor message.
+- [ ] Reuse the Day 7 RAG module for every visitor message.
 - [ ] Store the complete MVP RAG trace:
   - [ ] Visitor question
   - [ ] Retrieved chunks
@@ -738,7 +791,7 @@ not deferred hardening tasks.
   - [ ] `pnpm typecheck`
   - [ ] Public chat, domain allowlist, rate-limit, and tenant-isolation tests.
 
-### Day 9: Minimal Website Widget
+### Day 10: Minimal Website Widget
 
 - [ ] Build the first runnable `packages/widget` slice:
   - [ ] Vanilla JavaScript build.
@@ -751,7 +804,7 @@ not deferred hardening tasks.
   - [ ] Citations list
   - [ ] Error state
 - [ ] Load chatbot configuration through the public embed key.
-- [ ] Connect the widget to the Day 8 public chat API.
+- [ ] Connect the widget to the Day 9 public chat API.
 - [ ] Add local embed snippet support:
 
   ```html
@@ -771,7 +824,7 @@ not deferred hardening tasks.
   - [ ] `pnpm build`
   - [ ] Widget integration test against the public API.
 
-### Day 10: Dashboard Observability
+### Day 11: Dashboard Observability
 
 - [ ] Add chat logs page.
 - [ ] Add RAG trace detail page.
@@ -791,7 +844,7 @@ not deferred hardening tasks.
   - [ ] `pnpm typecheck`
   - [ ] Relevant trace, usage, and tenant-isolation tests.
 
-### Day 11: Product Completion Pass
+### Day 12: Product Completion Pass
 
 - [ ] Add widget welcome message and basic theme variables.
 - [ ] Add dashboard empty states and actionable error states.
@@ -812,7 +865,7 @@ not deferred hardening tasks.
   - [ ] `pnpm typecheck`
   - [ ] `pnpm build`
 
-### Day 12: Demo and Self-Host Documentation
+### Day 13: Demo and Self-Host Documentation
 
 - [ ] Add demo assets:
   - [ ] Demo HTML page with widget installed
@@ -835,7 +888,7 @@ not deferred hardening tasks.
   - [ ] `pnpm typecheck`
   - [ ] `pnpm build`
 
-### Day 13: End-to-End Hardening
+### Day 14: End-to-End Hardening
 
 - [ ] Run acceptance test:
   - [ ] Admin signs in
