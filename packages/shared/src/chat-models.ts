@@ -44,4 +44,7 @@ export function findSupportedChatModel(input: {
   );
 }
 
-export const DEFAULT_CHAT_MODEL_ID: SupportedChatModelId = "deepseek-chat";
+export const DEFAULT_CHAT_MODEL: SupportedChatModel = {
+  id: "deepseek-chat",
+  provider: "deepseek",
+};

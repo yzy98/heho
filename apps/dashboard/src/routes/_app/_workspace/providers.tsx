@@ -1,18 +1,168 @@
-import { createFileRoute } from "@tanstack/react-router";
+import {
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
+} from "@heho/ui/components/alert";
+import { Button } from "@heho/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@heho/ui/components/card";
+import { Skeleton } from "@heho/ui/components/skeleton";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+  createFileRoute,
+  type ErrorComponentProps,
+} from "@tanstack/react-router";
+import { AlertTriangleIcon, PlusIcon } from "lucide-react";
+import { useState } from "react";
+import { CreateLlmProviderDialog } from "@/components/create-llm-provider-dialog";
+import {
+  type LlmProvider,
+  llmProvidersQueryOptions,
+} from "@/queries/llm-provider";
 
 export const Route = createFileRoute("/_app/_workspace/providers")({
   staticData: {
     breadcrumb: "Providers",
   },
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(
+      llmProvidersQueryOptions(context.organization.id)
+    ),
+  pendingComponent: ProvidersPending,
+  errorComponent: ProvidersError,
   component: ProvidersPage,
 });
 
 function ProvidersPage() {
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
+  const { organization } = Route.useRouteContext();
+  const {
+    data: { providers },
+  } = useSuspenseQuery(llmProvidersQueryOptions(organization.id));
+
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-muted-foreground text-sm">
-        Configure an OpenAI-compatible provider to power your chatbots.
-      </p>
+    <>
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <p className="text-muted-foreground text-sm">
+          Configure model providers used by your chatbots.
+        </p>
+        <Button onClick={() => setCreateDialogOpen(true)}>
+          <PlusIcon data-icon="inline-start" />
+          Add provider
+        </Button>
+      </div>
+
+      {providers.length === 0 ? (
+        <ProvidersEmptyAlert />
+      ) : (
+        <ProviderList providers={providers} />
+      )}
+
+      <CreateLlmProviderDialog
+        onOpenChange={setCreateDialogOpen}
+        open={createDialogOpen}
+        organizationId={organization.id}
+      />
+    </>
+  );
+}
+
+function ProvidersEmptyAlert() {
+  return (
+    <Alert>
+      <AlertTriangleIcon />
+      <AlertTitle>No providers configured</AlertTitle>
+      <AlertDescription>
+        Add a provider before creating a chatbot.
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+function ProviderList({ providers }: { providers: LlmProvider[] }) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {providers.map((provider) => (
+        <ProviderCard key={provider.id} provider={provider} />
+      ))}
     </div>
+  );
+}
+
+function ProviderCard({ provider }: { provider: LlmProvider }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{provider.name}</CardTitle>
+        <CardDescription>{provider.provider}</CardDescription>
+      </CardHeader>
+
+      <CardContent>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
+          <dt className="text-muted-foreground">Capability</dt>
+          <dd className="text-right">
+            {provider.capability === "chat" ? "Chat" : "Embedding"}
+          </dd>
+
+          <dt className="text-muted-foreground">Model</dt>
+          <dd className="truncate text-right" title={provider.model}>
+            {provider.model}
+          </dd>
+
+          <dt className="text-muted-foreground">Base URL</dt>
+          <dd
+            className="truncate text-right"
+            title={provider.baseUrl ?? "Provider default"}
+          >
+            {provider.baseUrl ?? "Provider default"}
+          </dd>
+
+          <dt className="text-muted-foreground">Credential</dt>
+          <dd className="text-right">Saved</dd>
+        </dl>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ProvidersPending() {
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="space-y-2">
+        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-4 w-80 max-w-full" />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Skeleton className="h-48" />
+        <Skeleton className="h-48" />
+      </div>
+    </div>
+  );
+}
+
+function ProvidersError({ error, reset }: ErrorComponentProps) {
+  return (
+    <Alert variant="destructive">
+      <AlertTriangleIcon />
+      <AlertTitle>Unable to load providers</AlertTitle>
+      <AlertDescription>
+        {error instanceof Error
+          ? error.message
+          : "An unexpected error occurred."}
+      </AlertDescription>
+      <AlertAction>
+        <Button onClick={reset} size="xs" type="button" variant="secondary">
+          Try aganin
+        </Button>
+      </AlertAction>
+    </Alert>
   );
 }
