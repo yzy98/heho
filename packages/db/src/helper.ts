@@ -1,1 +1,1 @@
-export { eq, sql } from "drizzle-orm";
+export { desc, eq, sql } from "drizzle-orm";

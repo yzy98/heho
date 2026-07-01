@@ -10,7 +10,7 @@ import {
   hasAnyOrganization,
 } from "../services/organizations";
 
-type CreateOrganizationsRouteOptions = CreateAppOptions;
+type CreateOrganizationsRouteOptions = Omit<CreateAppOptions, "encryptionKey">;
 
 const createOrganizationValidator = zValidator(
   "json",
