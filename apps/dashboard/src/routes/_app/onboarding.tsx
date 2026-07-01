@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { CreateOrganizationForm } from "@/components/create-organization-form";
+import { CreateOrganizationForm } from "@/components/forms/create-organization-form";
 import { organizationQueryOptions } from "@/queries/organization";
 
 export const Route = createFileRoute("/_app/onboarding")({

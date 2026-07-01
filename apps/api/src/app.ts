@@ -1,6 +1,7 @@
 import type { AuthServer } from "@heho/auth/server";
 import type { DbClient } from "@heho/db";
 import { Hono } from "hono";
+import { createChatbotsRoute } from "./routes/chatbots";
 import health from "./routes/health";
 import { createLlmProvidersRoute } from "./routes/llm-providers";
 import { createOrganizationsRoute } from "./routes/organizations";
@@ -26,6 +27,7 @@ export function createApp({ auth, db, encryptionKey }: CreateAppOptions) {
         "/llm-providers",
         createLlmProvidersRoute({ auth, db, encryptionKey })
       )
+      .route("/chatbots", createChatbotsRoute({ auth, db }))
   );
 }
 

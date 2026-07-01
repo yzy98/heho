@@ -20,7 +20,8 @@ import {
 } from "@tanstack/react-router";
 import { AlertTriangleIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
-import { CreateLlmProviderDialog } from "@/components/create-llm-provider-dialog";
+import { CreateLlmProviderDialog } from "@/components/dialogs/create-llm-provider-dialog";
+import { hasOwnerRole } from "@/lib/utils";
 import {
   type LlmProvider,
   llmProvidersQueryOptions,
@@ -47,40 +48,48 @@ function ProvidersPage() {
     data: { providers },
   } = useSuspenseQuery(llmProvidersQueryOptions(organization.id));
 
+  const canCreate = hasOwnerRole(organization.role);
+
   return (
     <>
       <div className="mb-4 flex items-start justify-between gap-4">
         <p className="text-muted-foreground text-sm">
           Configure model providers used by your chatbots.
         </p>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <PlusIcon data-icon="inline-start" />
-          Add provider
-        </Button>
+        {canCreate && (
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <PlusIcon data-icon="inline-start" />
+            Add provider
+          </Button>
+        )}
       </div>
 
       {providers.length === 0 ? (
-        <ProvidersEmptyAlert />
+        <ProvidersEmptyAlert canCreate={canCreate} />
       ) : (
         <ProviderList providers={providers} />
       )}
 
-      <CreateLlmProviderDialog
-        onOpenChange={setCreateDialogOpen}
-        open={createDialogOpen}
-        organizationId={organization.id}
-      />
+      {canCreate && (
+        <CreateLlmProviderDialog
+          onOpenChange={setCreateDialogOpen}
+          open={createDialogOpen}
+          organizationId={organization.id}
+        />
+      )}
     </>
   );
 }
 
-function ProvidersEmptyAlert() {
+function ProvidersEmptyAlert({ canCreate }: { canCreate: boolean }) {
   return (
     <Alert>
       <AlertTriangleIcon />
-      <AlertTitle>No providers configured</AlertTitle>
+      <AlertTitle>No LLM providers configured</AlertTitle>
       <AlertDescription>
-        Add a provider before creating a chatbot.
+        {canCreate
+          ? "Configure a model provider."
+          : "The organization owner must configure the model providers."}
       </AlertDescription>
     </Alert>
   );
@@ -160,7 +169,7 @@ function ProvidersError({ error, reset }: ErrorComponentProps) {
       </AlertDescription>
       <AlertAction>
         <Button onClick={reset} size="xs" type="button" variant="secondary">
-          Try aganin
+          Try again
         </Button>
       </AlertAction>
     </Alert>

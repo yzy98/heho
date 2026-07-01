@@ -45,13 +45,14 @@ export const chatbot = pgTable(
     organizationId: text()
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
-    llmProviderId: text().references(() => llmProvider.id, {
+    chatProviderId: text().references(() => llmProvider.id, {
+      onDelete: "set null",
+    }),
+    embeddingProviderId: text().references(() => llmProvider.id, {
       onDelete: "set null",
     }),
     name: text().notNull(),
     systemInstructions: text().notNull(),
-    chatModel: text(),
-    embeddingModel: text(),
     themeSettings: jsonb().notNull().default({}),
     retrievalSettings: jsonb().notNull().default({}),
     createdAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
@@ -59,6 +60,7 @@ export const chatbot = pgTable(
   },
   (table) => [
     index("chatbot_organization_id_idx").on(table.organizationId),
-    index("chatbot_llm_provider_id_idx").on(table.llmProviderId),
+    index("chatbot_chat_provider_id_idx").on(table.chatProviderId),
+    index("chatbot_embedding_provider_id_idx").on(table.embeddingProviderId),
   ]
 );

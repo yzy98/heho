@@ -650,39 +650,39 @@ Chatbot API and dashboard work are intentionally deferred to Day 5.
 
 ### Day 5: Chatbot Setup
 
-- [ ] Update the `chatbot` schema for capability-specific Provider references:
-  - [ ] `chat_provider_id`
-  - [ ] `embedding_provider_id`
-- [ ] Remove duplicated chat and embedding model fields from `chatbot`; each
+- [x] Update the `chatbot` schema for capability-specific Provider references:
+  - [x] `chat_provider_id`
+  - [x] `embedding_provider_id`
+- [x] Remove duplicated chat and embedding model fields from `chatbot`; each
       selected Provider row already owns its capability, model, and credential.
-- [ ] Preserve Chatbots when a referenced Provider is deleted by setting the
+- [x] Preserve Chatbots when a referenced Provider is deleted by setting the
       corresponding Provider reference to `null`.
-- [ ] Add authenticated Chatbot APIs:
-  - [ ] `GET /chatbots`
-  - [ ] `POST /chatbots`
-- [ ] Derive `organizationId` from the authenticated user's membership; never
+- [x] Add authenticated Chatbot APIs:
+  - [x] `GET /chatbots`
+  - [x] `POST /chatbots`
+- [x] Derive `organizationId` from the authenticated user's membership; never
       accept it from the dashboard.
-- [ ] Allow all organization members to list Chatbots and restrict creation to
+- [x] Allow all organization members to list Chatbots and restrict creation to
       the organization `owner`.
-- [ ] Validate that selected Providers:
-  - [ ] Belong to the current organization.
-  - [ ] Match the required `chat` or `embedding` capability.
-- [ ] Add the dashboard Chatbot list, empty/loading/error states, and responsive
+- [x] Validate that selected Providers:
+  - [x] Belong to the current organization.
+  - [x] Match the required `chat` or `embedding` capability.
+- [x] Add the dashboard Chatbot list, empty/loading/error states, and responsive
       creation form.
-- [ ] Limit the first Chatbot slice to create and list; defer update, delete,
+- [x] Limit the first Chatbot slice to create and list; defer update, delete,
       model execution, RAG, and widget behavior.
-- [ ] Acceptance:
-  - [ ] An owner can create a Chatbot using chat and embedding Providers from
+- [x] Acceptance:
+  - [x] An owner can create a Chatbot using chat and embedding Providers from
         the current organization.
-  - [ ] Members can list Chatbots but cannot create them.
-  - [ ] Cross-organization and capability-mismatched Provider references are
+  - [x] Members can list Chatbots but cannot create them.
+  - [x] Cross-organization and capability-mismatched Provider references are
         rejected.
   - [ ] Chatbot responses do not expose Provider credentials or organization
         IDs.
-- [ ] Run:
-  - [ ] `pnpm check`
-  - [ ] `pnpm typecheck`
-  - [ ] Chatbot API, authorization, capability, and tenant-isolation tests.
+- [x] Run:
+  - [x] `pnpm check`
+  - [x] `pnpm typecheck`
+  - [x] Chatbot API, authorization, capability, and tenant-isolation tests.
 
 ### Day 6: Embed Keys and Domain Allowlist
 

@@ -51,7 +51,7 @@ export const llmProvidersQueryOptions = (organizationId: string) =>
     queryFn: ({ signal }) => listLlmProviders(signal),
   });
 
-export const llmProviderMutationOptions = (
+export const createLlmProviderMutationOptions = (
   queryClient: QueryClient,
   organizationId: string
 ) =>

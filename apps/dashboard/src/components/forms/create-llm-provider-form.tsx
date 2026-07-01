@@ -29,15 +29,15 @@ import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ComponentProps } from "react";
 import z from "zod";
-import { llmProviderMutationOptions } from "@/queries/llm-provider";
+import { createLlmProviderMutationOptions } from "@/queries/llm-provider";
 
 const baseSchema = z
   .object({
     name: z
       .string()
       .trim()
-      .min(1, "Llm-provider name is required")
-      .max(100, "Llm-provider name is too long"),
+      .min(1, "LLM provider name is required")
+      .max(100, "LLM provider name is too long"),
     baseUrl: z.url("Enter a valid url").nullable().optional(),
     apiKey: z
       .string()
@@ -119,7 +119,7 @@ export const CreateLlmProviderForm = ({
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    ...llmProviderMutationOptions(queryClient, organizationId),
+    ...createLlmProviderMutationOptions(queryClient, organizationId),
     onError: (error) => {
       toast.error(error.message);
     },
@@ -141,7 +141,7 @@ export const CreateLlmProviderForm = ({
       });
 
       form.reset();
-      toast.success("Llm-provider created.");
+      toast.success("LLM provider created.");
       onSuccess?.();
     },
   });
