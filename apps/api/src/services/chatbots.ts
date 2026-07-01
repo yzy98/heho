@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { DbClient } from "@heho/db";
 import { and, desc, eq, inArray } from "@heho/db/helper";
 import { chatbot, llmProvider } from "@heho/db/schema";
+import { hasOwnerRole } from "../lib/helpers";
 import type { CreateChatbotInput } from "../schemas/chatbots";
 import { getCurrentOrganization } from "./organizations";
 
@@ -57,12 +58,6 @@ const chatbotSelection = {
   createdAt: chatbot.createdAt,
   updatedAt: chatbot.updatedAt,
 };
-
-const hasOwnerRole = (role: string): boolean =>
-  role
-    .split(",")
-    .map((value) => value.trim())
-    .includes("owner");
 
 export const createChatbot = async ({
   db,

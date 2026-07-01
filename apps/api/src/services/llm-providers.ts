@@ -3,6 +3,7 @@ import type { DbClient } from "@heho/db";
 import { desc, eq } from "@heho/db/helper";
 import { llmProvider } from "@heho/db/schema";
 import { encryptApiKey } from "../lib/api-key-encryption";
+import { hasOwnerRole } from "../lib/helpers";
 import type { CreateLlmProviderInput } from "../schemas/llm-providers";
 import { getCurrentOrganization } from "./organizations";
 
@@ -54,12 +55,6 @@ const providerSelection = {
   createdAt: llmProvider.createdAt,
   updatedAt: llmProvider.updatedAt,
 };
-
-const hasOwnerRole = (role: string): boolean =>
-  role
-    .split(",")
-    .map((value) => value.trim())
-    .includes("owner");
 
 export const createLlmProvider = async ({
   db,
