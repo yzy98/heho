@@ -3,20 +3,20 @@ import { Hono } from "hono";
 import type { CreateAppOptions } from "../app";
 import type { AppEnv } from "../context";
 import { requireAuth } from "../middleware/require-auth";
-import { createLlmProviderSchema } from "../schemas/llm-providers";
-import { createLlmProvider, listLlmProviders } from "../services/llm-providers";
+import { createChatbotSchema } from "../schemas/chatbots";
+import { createChatbot, listChatbots } from "../services/chatbots";
 
-type CreateLlmProvidersRouteOptions = CreateAppOptions;
+type CreateChatbotsRouteOptions = Omit<CreateAppOptions, "encryptionKey">;
 
-const createLlmProviderValidator = zValidator(
+const createChatbotValidator = zValidator(
   "json",
-  createLlmProviderSchema,
+  createChatbotSchema,
   (result, c) => {
     if (!result.success) {
       return c.json(
         {
           code: "VALIDATION_ERROR",
-          message: "Invalid llm-provider input.",
+          message: "Invalid chatbot input.",
           issues: result.error.issues,
         },
         400
@@ -32,20 +32,26 @@ const organizationMembershipRequiredResponse = {
 
 const insufficientRoleResponse = {
   code: "INSUFFICIENT_ORGANIZATION_ROLE",
-  message: "Only organization owner can create LLM providers.",
+  message: "Only organization owner can create chatbots.",
 } as const;
 
-export const createLlmProvidersRoute = ({
-  auth,
-  db,
-  encryptionKey,
-}: CreateLlmProvidersRouteOptions) =>
+const invalidChatProviderResponse = {
+  code: "INVALID_CHAT_PROVIDER",
+  message: "Selected chat provider is invalid.",
+} as const;
+
+const invalidEmbeddingProviderResponse = {
+  code: "INVALID_EMBEDDING_PROVIDER",
+  message: "Selected embedding provider is invalid.",
+} as const;
+
+export const createChatbotsRoute = ({ auth, db }: CreateChatbotsRouteOptions) =>
   new Hono<AppEnv>()
     .use("*", requireAuth(auth))
     .get("/", async (c) => {
       const user = c.get("user");
 
-      const result = await listLlmProviders({
+      const result = await listChatbots({
         db,
         userId: user.id,
       });
@@ -55,16 +61,15 @@ export const createLlmProvidersRoute = ({
       }
 
       return c.json({
-        providers: result.providers,
+        chatbots: result.chatbots,
       });
     })
-    .post("/", createLlmProviderValidator, async (c) => {
+    .post("/", createChatbotValidator, async (c) => {
       const user = c.get("user");
       const input = c.req.valid("json");
 
-      const result = await createLlmProvider({
+      const result = await createChatbot({
         db,
-        encryptionKey,
         input,
         userId: user.id,
       });
@@ -77,9 +82,17 @@ export const createLlmProvidersRoute = ({
         return c.json(insufficientRoleResponse, 403);
       }
 
+      if (result.status === "invalid_chat_provider") {
+        return c.json(invalidChatProviderResponse, 400);
+      }
+
+      if (result.status === "invalid_embedding_provider") {
+        return c.json(invalidEmbeddingProviderResponse, 400);
+      }
+
       return c.json(
         {
-          provider: result.provider,
+          chatbot: result.chatbot,
         },
         201
       );
