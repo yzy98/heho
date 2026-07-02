@@ -16,7 +16,7 @@ export type CreateChatbotInput = Parameters<
 >[0]["json"];
 
 const listChatbots = async (signal: AbortSignal) => {
-  // Manually slow down 3s in dev environment
+  // [TODO] Manually slow down 3s in dev environment
   // if (import.meta.env.DEV) {
   //   await new Promise((resolve) => setTimeout(resolve, 3000));
   //   throw new Error("Simulated chatbots loading failure.");

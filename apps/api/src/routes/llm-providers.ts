@@ -32,7 +32,7 @@ const organizationMembershipRequiredResponse = {
 
 const insufficientRoleResponse = {
   code: "INSUFFICIENT_ORGANIZATION_ROLE",
-  message: "Only organization owner can create LLM providers.",
+  message: "Only the organization owner can create LLM providers.",
 } as const;
 
 export const createLlmProvidersRoute = ({

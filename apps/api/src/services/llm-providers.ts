@@ -72,13 +72,14 @@ export const createLlmProvider = async ({
     };
   }
 
-  // Only organization owner can create llm provider
+  // Only the organization owner can create llm provider
   if (!hasOwnerRole(organization.role)) {
     return {
       status: "insufficient_role",
     };
   }
 
+  // Encrypt the input llm api key
   const encryptedApiKey = await encryptApiKey({
     apiKey: input.apiKey,
     encryptionKey,
