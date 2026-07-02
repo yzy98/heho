@@ -36,9 +36,12 @@ const allowedDomainSchema = z
     return url.origin;
   });
 
+export const chatbotEmbedKeysParamsSchema = z.object({
+  chatbotId: z.uuid("Chatbot ID must be a valid UUID"),
+});
+
 export const createEmbedKeySchema = z
   .object({
-    chatbotId: z.uuid("Chatbot ID must be a valid UUID"),
     allowedDomains: z
       .array(allowedDomainSchema)
       .max(20, "A maximum of 20 allowed domains is supported")

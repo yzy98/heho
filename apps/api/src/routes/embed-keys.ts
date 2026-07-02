@@ -3,10 +3,33 @@ import { Hono } from "hono";
 import type { CreateAppOptions } from "../app";
 import type { AppEnv } from "../context";
 import { requireAuth } from "../middleware/require-auth";
-import { createEmbedKeySchema } from "../schemas/embed-keys";
-import { createEmbedKey, listEmbedKeys } from "../services/embed-keys";
+import {
+  chatbotEmbedKeysParamsSchema,
+  createEmbedKeySchema,
+} from "../schemas/embed-keys";
+import { createEmbedKey, listChatbotEmbedKeys } from "../services/embed-keys";
 
-type CreateEmbedKeysRouteOptions = Omit<CreateAppOptions, "encryptionKey">;
+type CreateChatbotEmbedKeysRouteOptions = Omit<
+  CreateAppOptions,
+  "encryptionKey"
+>;
+
+const chatbotEmbedKeysParamsValidator = zValidator(
+  "param",
+  chatbotEmbedKeysParamsSchema,
+  (result, c) => {
+    if (!result.success) {
+      return c.json(
+        {
+          code: "VALIDATION_ERROR",
+          message: "Invalid chatbot ID.",
+          issues: result.error.issues,
+        },
+        400
+      );
+    }
+  }
+);
 
 const createEmbedKeyValidator = zValidator(
   "json",
@@ -40,55 +63,72 @@ const invalidChatbotResponse = {
   message: "Selected chatbot is invalid.",
 } as const;
 
-export const createEmbedKeysRoute = ({
+export const createChatbotEmbedKeysRoute = ({
   auth,
   db,
-}: CreateEmbedKeysRouteOptions) =>
+}: CreateChatbotEmbedKeysRouteOptions) =>
   new Hono<AppEnv>()
     .use("*", requireAuth(auth))
-    .get("/", async (c) => {
-      const user = c.get("user");
+    .get(
+      "/:chatbotId/embed-keys",
+      chatbotEmbedKeysParamsValidator,
+      async (c) => {
+        const user = c.get("user");
+        const { chatbotId } = c.req.valid("param");
 
-      const result = await listEmbedKeys({
-        db,
-        userId: user.id,
-      });
+        const result = await listChatbotEmbedKeys({
+          db,
+          chatbotId,
+          userId: user.id,
+        });
 
-      if (result.status === "organization_membership_required") {
-        return c.json(organizationMembershipRequiredResponse, 403);
+        if (result.status === "organization_membership_required") {
+          return c.json(organizationMembershipRequiredResponse, 403);
+        }
+
+        if (result.status === "invalid_chatbot") {
+          return c.json(invalidChatbotResponse, 400);
+        }
+
+        return c.json({
+          embedKeys: result.embedKeys,
+        });
       }
+    )
+    .post(
+      "/:chatbotId/embed-keys",
+      chatbotEmbedKeysParamsValidator,
+      createEmbedKeyValidator,
+      async (c) => {
+        const user = c.get("user");
+        const { chatbotId } = c.req.valid("param");
+        const input = c.req.valid("json");
 
-      return c.json({
-        embedKeys: result.embedKeys,
-      });
-    })
-    .post("/", createEmbedKeyValidator, async (c) => {
-      const user = c.get("user");
-      const input = c.req.valid("json");
+        const result = await createEmbedKey({
+          db,
+          chatbotId,
+          input,
+          userId: user.id,
+        });
 
-      const result = await createEmbedKey({
-        db,
-        input,
-        userId: user.id,
-      });
+        if (result.status === "organization_membership_required") {
+          return c.json(organizationMembershipRequiredResponse, 403);
+        }
 
-      if (result.status === "organization_membership_required") {
-        return c.json(organizationMembershipRequiredResponse, 403);
+        if (result.status === "insufficient_role") {
+          return c.json(insufficientRoleResponse, 403);
+        }
+
+        if (result.status === "invalid_chatbot") {
+          return c.json(invalidChatbotResponse, 400);
+        }
+
+        return c.json(
+          {
+            embedKey: result.embedKey,
+            key: result.key,
+          },
+          201
+        );
       }
-
-      if (result.status === "insufficient_role") {
-        return c.json(insufficientRoleResponse, 403);
-      }
-
-      if (result.status === "invalid_chatbot") {
-        return c.json(invalidChatbotResponse, 400);
-      }
-
-      return c.json(
-        {
-          embedKey: result.embedKey,
-          key: result.key,
-        },
-        201
-      );
-    });
+    );

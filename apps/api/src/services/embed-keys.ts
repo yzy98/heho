@@ -19,12 +19,14 @@ export type EmbedKeyDto = Omit<
 
 export type CreateEmbedKeyOptions = {
   db: DbClient;
+  chatbotId: string;
   input: CreateEmbedKeyInput;
   userId: string;
 };
 
-export type ListEmbedKeysOptions = {
+export type ListChatbotEmbedKeysOptions = {
   db: DbClient;
+  chatbotId: string;
   userId: string;
 };
 
@@ -49,13 +51,16 @@ export type CreateEmbedKeyResult =
       status: "invalid_chatbot";
     };
 
-export type ListEmbedKeysResult =
+export type ListChatbotEmbedKeysResult =
   | {
       status: "success";
       embedKeys: EmbedKeyDto[];
     }
   | {
       status: "organization_membership_required";
+    }
+  | {
+      status: "invalid_chatbot";
     };
 
 export type ResolvedEmbedKey = {
@@ -73,8 +78,31 @@ const embedKeySelection = {
   createdAt: embedKeyTable.createdAt,
 };
 
+const findChatbotInOrganization = async ({
+  db,
+  chatbotId,
+  organizationId,
+}: {
+  db: DbClient;
+  chatbotId: string;
+  organizationId: string;
+}) => {
+  const rows = await db
+    .select({
+      id: chatbot.id,
+    })
+    .from(chatbot)
+    .where(
+      and(eq(chatbot.id, chatbotId), eq(chatbot.organizationId, organizationId))
+    )
+    .limit(1);
+
+  return rows[0] ?? null;
+};
+
 export const createEmbedKey = async ({
   db,
+  chatbotId,
   input,
   userId,
 }: CreateEmbedKeyOptions): Promise<CreateEmbedKeyResult> => {
@@ -96,20 +124,11 @@ export const createEmbedKey = async ({
   }
 
   // Check if the chatbot provided exists or not
-  const chatbots = await db
-    .select({
-      id: chatbot.id,
-    })
-    .from(chatbot)
-    .where(
-      and(
-        eq(chatbot.id, input.chatbotId),
-        eq(chatbot.organizationId, organization.id)
-      )
-    )
-    .limit(1);
-
-  const selectedChatbot = chatbots[0];
+  const selectedChatbot = await findChatbotInOrganization({
+    db,
+    chatbotId,
+    organizationId: organization.id,
+  });
 
   if (!selectedChatbot) {
     return {
@@ -117,13 +136,14 @@ export const createEmbedKey = async ({
     };
   }
 
-  // Insert embed key
+  // Generate raw key and its hash
   const rawKey = generateEmbedKey();
   const keyPrefix = getEmbedKeyPrefix(rawKey);
   const keyHash = hashEmbedKey(rawKey);
 
   const now = new Date();
 
+  // Insert into db
   const rows = await db
     .insert(embedKeyTable)
     .values({
@@ -150,10 +170,11 @@ export const createEmbedKey = async ({
   };
 };
 
-export const listEmbedKeys = async ({
+export const listChatbotEmbedKeys = async ({
   db,
+  chatbotId,
   userId,
-}: ListEmbedKeysOptions): Promise<ListEmbedKeysResult> => {
+}: ListChatbotEmbedKeysOptions): Promise<ListChatbotEmbedKeysResult> => {
   // Get current organization
   const organization = await getCurrentOrganization(db, userId);
 
@@ -164,10 +185,28 @@ export const listEmbedKeys = async ({
     };
   }
 
+  // Check if the chatbot provided exists or not
+  const selectedChatbot = await findChatbotInOrganization({
+    db,
+    chatbotId,
+    organizationId: organization.id,
+  });
+
+  if (!selectedChatbot) {
+    return {
+      status: "invalid_chatbot",
+    };
+  }
+
   const embedKeys = await db
     .select(embedKeySelection)
     .from(embedKeyTable)
-    .where(eq(embedKeyTable.organizationId, organization.id))
+    .where(
+      and(
+        eq(embedKeyTable.organizationId, organization.id),
+        eq(embedKeyTable.chatbotId, selectedChatbot.id)
+      )
+    )
     .orderBy(desc(embedKeyTable.createdAt));
 
   return {
