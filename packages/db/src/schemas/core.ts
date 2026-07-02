@@ -5,6 +5,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { organization } from "./auth";
 
@@ -62,5 +63,27 @@ export const chatbot = pgTable(
     index("chatbot_organization_id_idx").on(table.organizationId),
     index("chatbot_chat_provider_id_idx").on(table.chatProviderId),
     index("chatbot_embedding_provider_id_idx").on(table.embeddingProviderId),
+  ]
+);
+
+export const embedKey = pgTable(
+  "embed_key",
+  {
+    id: text().primaryKey(),
+    organizationId: text()
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    chatbotId: text()
+      .notNull()
+      .references(() => chatbot.id, { onDelete: "cascade" }),
+    keyPrefix: text().notNull(),
+    keyHash: text().notNull(),
+    allowedDomains: jsonb().$type<string[]>().notNull().default([]),
+    createdAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
+  },
+  (table) => [
+    index("embed_key_organization_id_idx").on(table.organizationId),
+    index("embed_key_chatbot_id_idx").on(table.chatbotId),
+    uniqueIndex("embed_key_key_hash_unique").on(table.keyHash),
   ]
 );
