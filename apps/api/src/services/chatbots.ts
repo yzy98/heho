@@ -74,7 +74,7 @@ export const createChatbot = async ({
     };
   }
 
-  // Only organization owner can create chatbot
+  // Only the organization owner can create chatbot
   if (!hasOwnerRole(organization.role)) {
     return {
       status: "insufficient_role",

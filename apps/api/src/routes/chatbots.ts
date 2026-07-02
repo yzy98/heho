@@ -32,7 +32,7 @@ const organizationMembershipRequiredResponse = {
 
 const insufficientRoleResponse = {
   code: "INSUFFICIENT_ORGANIZATION_ROLE",
-  message: "Only organization owner can create chatbots.",
+  message: "Only the organization owner can create chatbots.",
 } as const;
 
 const invalidChatProviderResponse = {
