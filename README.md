@@ -233,6 +233,44 @@ secret API key: sk_xxx
   Must never be exposed in frontend code.
 ```
 
+An embed key is an opaque, public identifier for one Chatbot deployment. It
+does not encode a Chatbot or Organization ID. Heho generates the key, stores
+only its deterministic SHA-256 hash and a display-safe prefix, and returns the
+raw key once so it can be installed in a website. A Chatbot may have multiple
+keys for production, staging, local development, or key rotation.
+
+```mermaid
+flowchart TD
+  subgraph Creation["Create and install"]
+    A[Owner selects a Chatbot] --> B[Heho generates a random pk_* key]
+    B --> C[Calculate SHA-256]
+    C --> D[(Store keyHash, keyPrefix,<br/>chatbotId, organizationId,<br/>and allowedDomains)]
+    B --> E[Return the raw key once]
+    E --> F[User installs the raw key<br/>in a website or React app]
+  end
+
+  subgraph Resolution["Resolve each Widget request"]
+    G[Widget sends the raw pk_* key] --> H[Backend calculates SHA-256]
+    H --> I[Find embed_key by keyHash]
+    I --> J[Resolve the assigned Chatbot,<br/>Organization, and domain policy]
+  end
+
+  F --> G
+```
+
+The two directions are intentionally different:
+
+```txt
+creation: raw key -> SHA-256 -> stored keyHash
+request:  raw key -> SHA-256 -> keyHash lookup -> assigned Chatbot
+```
+
+The raw `pk_*` value is browser-visible and is not a server secret. Its
+capabilities must therefore remain limited to public Widget APIs and be
+protected with tenant isolation, domain policy, revocation, and rate limiting.
+Provider credentials and dashboard APIs must never be accessible through an
+embed key.
+
 ## Minimal Database Model
 
 Initial entities:
@@ -686,21 +724,45 @@ Chatbot API and dashboard work are intentionally deferred to Day 5.
 
 ### Day 6: Embed Keys and Domain Allowlist
 
-- [ ] Add the embed key schema and migration.
-- [ ] Generate `pk_*` public embed keys.
-- [ ] Store embed key hashes, not raw keys.
-- [ ] Store key prefixes for dashboard display.
-- [ ] Add optional domain allowlist per embed key.
-- [ ] Add embed key dashboard page.
-- [ ] Show local install snippet for the selected chatbot.
-- [ ] Enforce organization membership on embed key management.
-- [ ] Acceptance:
-  - [ ] A key is displayed once after creation.
-  - [ ] Only its hash and prefix remain stored.
-  - [ ] The key resolves only to its assigned chatbot and organization.
-- [ ] Run:
-  - [ ] `pnpm check`
-  - [ ] `pnpm typecheck`
+- [x] Add the `embed_key` schema with direct Organization and Chatbot
+      ownership.
+- [x] Generate random `pk_*` public embed keys with 32 bytes of entropy.
+- [x] Store SHA-256 key hashes, not raw keys.
+- [x] Store display-safe key prefixes.
+- [x] Add an optional exact-origin domain allowlist per key.
+- [x] Allow one Chatbot to own multiple keys for separate deployments and key
+      rotation.
+- [x] Add authenticated, Chatbot-scoped Embed Key APIs:
+  - [x] `GET /chatbots/:chatbotId/embed-keys`
+  - [x] `POST /chatbots/:chatbotId/embed-keys`
+- [x] Do not add a global `GET /embed-keys` endpoint or a single-key read
+      endpoint for the MVP.
+- [x] Derive `organizationId` from membership and validate that the selected
+      Chatbot belongs to that Organization.
+- [x] Allow all Organization members to list a selected Chatbot's key
+      summaries and restrict creation to the Organization `owner`.
+- [x] Add Embed Key management dialog to the Chatbot card instead of adding a global Embed Key
+      dashboard page.
+- [x] Load keys only for the selected Chatbot using an Organization- and
+      Chatbot-scoped Dashboard query.
+- [x] Show the raw key once after creation, then retain only its prefix in the
+      management UI.
+- [ ] Show local Script Widget and React integration snippets for the selected
+      Chatbot.
+- [ ] Add owner-only key revocation without exposing the raw key again.
+- [x] Acceptance:
+  - [x] An owner can create multiple keys for a Chatbot from that Chatbot's
+        management UI.
+  - [x] A key is displayed once after creation.
+  - [x] Only its hash and prefix remain stored and returned by later list
+        requests.
+  - [x] Listing one Chatbot's keys never returns keys assigned to another
+        Chatbot or Organization.
+  - [x] A raw key resolves only to its assigned Chatbot and Organization.
+  - [x] Members can view key summaries but cannot create or revoke keys.
+- [x] Run:
+  - [x] `pnpm check`
+  - [x] `pnpm typecheck`
   - [ ] Relevant embed key and tenant-isolation tests.
 
 ### Day 7: Thin End-to-End Text RAG Slice

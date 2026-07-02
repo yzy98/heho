@@ -9,6 +9,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@heho/ui/components/card";
@@ -18,9 +19,10 @@ import {
   createFileRoute,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { AlertTriangleIcon, PlusIcon } from "lucide-react";
+import { AlertTriangleIcon, KeyRoundIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { CreateChatDialog } from "@/components/dialogs/create-chatbot-dialog";
+import { ManageChatbotEmbedKeysDialog } from "@/components/dialogs/manage-chatbot-embed-keys-dialog";
 import { hasOwnerRole } from "@/lib/utils";
 import { type Chatbot, chatbotsQueryOptions } from "@/queries/chatbot";
 import {
@@ -47,7 +49,8 @@ export const Route = createFileRoute("/_app/_workspace/chatbots")({
 });
 
 function ChatbotsPage() {
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createChatbotDialogOpen, setCreateChatbotDialogOpen] = useState(false);
+  const [managedChatbot, setManagedChatbot] = useState<Chatbot | null>(null);
 
   const { organization } = Route.useRouteContext();
   const {
@@ -66,7 +69,7 @@ function ChatbotsPage() {
           Configure your chatbots.
         </p>
         {canCreate && (
-          <Button onClick={() => setCreateDialogOpen(true)}>
+          <Button onClick={() => setCreateChatbotDialogOpen(true)}>
             <PlusIcon data-icon="inline-start" />
             Add chatbot
           </Button>
@@ -76,15 +79,33 @@ function ChatbotsPage() {
       {chatbots.length === 0 ? (
         <ChatbotsEmptyAlert canCreate={canCreate} />
       ) : (
-        <ChatbotList chatbots={chatbots} providers={providers} />
+        <ChatbotList
+          chatbots={chatbots}
+          onManageEmbedKeys={setManagedChatbot}
+          providers={providers}
+        />
       )}
 
       {canCreate && (
         <CreateChatDialog
-          onOpenChange={setCreateDialogOpen}
-          open={createDialogOpen}
+          onOpenChange={setCreateChatbotDialogOpen}
+          open={createChatbotDialogOpen}
           organizationId={organization.id}
           providers={providers}
+        />
+      )}
+
+      {managedChatbot && (
+        <ManageChatbotEmbedKeysDialog
+          canCreate={canCreate}
+          chatbot={managedChatbot}
+          onOpenChange={(open) => {
+            if (!open) {
+              setManagedChatbot(null);
+            }
+          }}
+          open
+          organizationId={organization.id}
         />
       )}
     </>
@@ -108,9 +129,14 @@ function ChatbotsEmptyAlert({ canCreate }: { canCreate: boolean }) {
 type ChatbotListProps = {
   chatbots: Chatbot[];
   providers: LlmProvider[];
+  onManageEmbedKeys: (chatbot: Chatbot) => void;
 };
 
-function ChatbotList({ chatbots, providers }: ChatbotListProps) {
+function ChatbotList({
+  chatbots,
+  providers,
+  onManageEmbedKeys,
+}: ChatbotListProps) {
   const providersById = new Map(
     providers.map((provider) => [provider.id, provider])
   );
@@ -131,6 +157,7 @@ function ChatbotList({ chatbots, providers }: ChatbotListProps) {
               : undefined
           }
           key={chatbot.id}
+          onManageEmbedKeys={onManageEmbedKeys}
         />
       ))}
     </div>
@@ -141,12 +168,14 @@ type ChatbotCardProps = {
   chatbot: Chatbot;
   chatProvider: LlmProvider | undefined;
   embeddingProvider: LlmProvider | undefined;
+  onManageEmbedKeys: (chatbot: Chatbot) => void;
 };
 
 function ChatbotCard({
   chatbot,
   chatProvider,
   embeddingProvider,
+  onManageEmbedKeys,
 }: ChatbotCardProps) {
   return (
     <Card>
@@ -163,13 +192,24 @@ function ChatbotCard({
           <dd className="truncate text-right">
             {formatProvider(chatProvider)}
           </dd>
-
           <dt className="text-muted-foreground">Embedding LLM provider</dt>
           <dd className="truncate text-right">
             {formatProvider(embeddingProvider)}
           </dd>
         </dl>
       </CardContent>
+
+      <CardFooter>
+        <Button
+          onClick={() => onManageEmbedKeys(chatbot)}
+          size="sm"
+          type="button"
+          variant="outline"
+        >
+          <KeyRoundIcon data-icon="inline-start" />
+          Manage embed keys
+        </Button>
+      </CardFooter>
     </Card>
   );
 }
